@@ -1,0 +1,23 @@
+name: keep-alive
+# Pings the Render free-tier services every ~10 min so they don't sleep
+# (Render sleeps a free service after 15 min idle; waking it costs ~50s).
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping services
+        run: |
+          for url in \
+            "https://ecops-keycloak.onrender.com/realms/master" \
+            "https://ecops-api-gateway.onrender.com/actuator/health" \
+            "https://ecops-auth-admin.onrender.com/actuator/health" \
+            "https://ecops-case.onrender.com/actuator/health" \
+            "https://ecops-citizen.onrender.com/actuator/health"; do
+            echo "pinging $url"
+            curl -s -o /dev/null -w "  %{http_code} in %{time_total}s\n" --max-time 120 "$url" || true
+          done
