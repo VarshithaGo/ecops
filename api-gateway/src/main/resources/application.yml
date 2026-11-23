@@ -1,0 +1,84 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://localhost:8085/realms/ecops-realm/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8085/realms/ecops-realm}
+
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:5173"
+              - "http://ecops.local"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      routes:
+        # Public: citizen registration (no auth)
+        - id: citizen-register
+          uri: ${CITIZEN_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/citizens/register
+            - Method=POST
+
+        # Block all internal routes from external traffic
+        - id: block-internal
+          uri: no://op
+          predicates:
+            - Path=/api/v1/internal/**
+          filters:
+            - SetStatus=403
+
+        # Citizen service (authenticated)
+        - id: citizen-service
+          uri: ${CITIZEN_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/citizens/**
+          filters:
+            - AuthHeaderForwardFilter
+
+        # Auth-Admin service
+        - id: auth-admin-service
+          uri: ${AUTH_ADMIN_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/stations/**, /api/v1/zones/**, /api/v1/assignments/**
+          filters:
+            - AuthHeaderForwardFilter
+
+        # Case service
+        - id: case-service
+          uri: ${CASE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/complaints/**, /api/v1/firs/**, /api/v1/ncr/**,
+                    /api/v1/warrants/**, /api/v1/criminal-records/**,
+                    /api/v1/property/**, /api/v1/charge-sheets/**,
+                    /api/v1/final-reports/**, /api/v1/court-disposals/**
+          filters:
+            - AuthHeaderForwardFilter
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
+        enabled: true

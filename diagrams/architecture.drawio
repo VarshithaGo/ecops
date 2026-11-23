@@ -1,0 +1,205 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- USERS -->
+    <mxCell id="users" value="&lt;b&gt;Users&lt;/b&gt;&lt;br&gt;Admin | Police Officer&lt;br&gt;Magistrate | Citizen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontColor=#23395d;" vertex="1" parent="1">
+      <mxGeometry x="550" y="20" width="220" height="70" as="geometry"/>
+    </mxCell>
+
+    <!-- FRONTEND boundary -->
+    <mxCell id="fe_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;dashed=1;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="380" y="130" width="560" height="105" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_label" value="FRONTEND — Outside Kubernetes" style="text;html=1;fontStyle=1;fontSize=11;align=left;" vertex="1" parent="1">
+      <mxGeometry x="385" y="133" width="280" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- React App -->
+    <mxCell id="react" value="&lt;b&gt;React + Vite + TypeScript&lt;/b&gt;&lt;br&gt;Web Application&lt;br&gt;localhost:5173" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="465" y="150" width="270" height="70" as="geometry"/>
+    </mxCell>
+
+    <!-- KUBERNETES boundary -->
+    <mxCell id="k8s" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="50" y="285" width="1120" height="700" as="geometry"/>
+    </mxCell>
+    <mxCell id="k8s_label" value="KUBERNETES — MINIKUBE | Namespace: ecops" style="text;html=1;fontStyle=1;fontSize=12;align=left;" vertex="1" parent="1">
+      <mxGeometry x="60" y="290" width="420" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- API ENTRY group -->
+    <mxCell id="api_entry_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="370" y="320" width="300" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="api_entry_lbl" value="API ENTRY" style="text;html=1;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="470" y="324" width="100" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- NGINX -->
+    <mxCell id="nginx" value="&lt;b&gt;NGINX Ingress&lt;/b&gt;&lt;br&gt;ecops.local" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="400" y="345" width="240" height="65" as="geometry"/>
+    </mxCell>
+
+    <!-- API Gateway -->
+    <mxCell id="apigw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;Spring Boot :8080&lt;br&gt;JWT Validation &amp; Routing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="400" y="445" width="240" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- BACKEND MICROSERVICES group -->
+    <mxCell id="ms_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="80" y="590" width="730" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="ms_lbl" value="BACKEND MICROSERVICES" style="text;html=1;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="280" y="594" width="220" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Auth Admin Service -->
+    <mxCell id="auth_svc" value="&lt;b&gt;Auth Admin Service&lt;/b&gt;&lt;br&gt;Spring Boot :8081" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="100" y="615" width="190" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- Case Service -->
+    <mxCell id="case_svc" value="&lt;b&gt;Case Service&lt;/b&gt;&lt;br&gt;Spring Boot :8082" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="355" y="615" width="190" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- Citizen Service -->
+    <mxCell id="cit_svc" value="&lt;b&gt;Citizen Service&lt;/b&gt;&lt;br&gt;Spring Boot :8083" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="610" y="615" width="190" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- SERVICE DATABASES group -->
+    <mxCell id="db_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="80" y="760" width="730" height="130" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_lbl" value="SERVICE DATABASES — POSTGRESQL 16" style="text;html=1;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="220" y="764" width="320" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- auth_admin_db -->
+    <mxCell id="auth_db" value="auth_admin_db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="105" y="785" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- case_db -->
+    <mxCell id="case_db" value="case_db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="365" y="785" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- citizen_db -->
+    <mxCell id="cit_db" value="citizen_db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="625" y="785" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- AUTHENTICATION group -->
+    <mxCell id="auth_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="880" y="320" width="260" height="390" as="geometry"/>
+    </mxCell>
+    <mxCell id="auth_lbl" value="AUTHENTICATION" style="text;html=1;fontStyle=1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="940" y="325" width="140" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Keycloak -->
+    <mxCell id="keycloak" value="&lt;b&gt;Keycloak 24.0&lt;/b&gt;&lt;br&gt;Realm: ecops-realm&lt;br&gt;OAuth 2.0 / OpenID Connect&lt;br&gt;JWT Issuer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="898" y="350" width="224" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- keycloak_db -->
+    <mxCell id="kc_db" value="keycloak_db&lt;br&gt;PostgreSQL 16&lt;br&gt;postgres-keycloak pod" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="920" y="500" width="180" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== EDGES ===== -->
+
+    <!-- Users → React -->
+    <mxCell id="e_users_react" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="users" target="react" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- React → NGINX (API Requests) -->
+    <mxCell id="e_react_nginx" value="API Requests + JWT | /api route" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;" edge="1" source="react" target="nginx" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- React → Keycloak (Login/PKCE — bypasses NGINX) -->
+    <mxCell id="e_react_kc" value="Login / PKCE — Direct to Keycloak Service" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="react" target="keycloak" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="850" y="185"/>
+          <mxPoint x="1010" y="185"/>
+          <mxPoint x="1010" y="350"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Keycloak → React (Access Token) -->
+    <mxCell id="e_kc_react" value="Access Token (JWT) — Redirect back to browser" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#d6b656;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="keycloak" target="react" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1010" y="270"/>
+          <mxPoint x="1010" y="110"/>
+          <mxPoint x="860" y="110"/>
+          <mxPoint x="860" y="185"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- NGINX → API Gateway -->
+    <mxCell id="e_nginx_gw" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="nginx" target="apigw" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- API Gateway → Auth Admin -->
+    <mxCell id="e_gw_auth" value="Auth / Station / Officer APIs" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="apigw" target="auth_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- API Gateway → Case Service -->
+    <mxCell id="e_gw_case" value="Complaint / FIR / Investigation APIs" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="apigw" target="case_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- API Gateway → Citizen Service -->
+    <mxCell id="e_gw_cit" value="Citizen / Verification APIs" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="apigw" target="cit_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Auth Admin → auth_admin_db -->
+    <mxCell id="e_auth_db" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="auth_svc" target="auth_db" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Case Service → case_db -->
+    <mxCell id="e_case_db" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="case_svc" target="case_db" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Citizen Service → citizen_db -->
+    <mxCell id="e_cit_db" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="cit_svc" target="cit_db" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- API Gateway → Keycloak (JWKS) -->
+    <mxCell id="e_gw_jwks" value="JWKS / public key verification" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#6c8ebf;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="apigw" target="keycloak" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Auth Admin → Keycloak (User Sync) -->
+    <mxCell id="e_auth_kc" value="User sync — POST /api/v1/internal/users/sync (users_shadow)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#6c8ebf;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" edge="1" source="auth_svc" target="keycloak" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="840" y="653"/>
+          <mxPoint x="840" y="430"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Keycloak → keycloak_db -->
+    <mxCell id="e_kc_db" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" source="keycloak" target="kc_db" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

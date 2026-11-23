@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: case-service-config
+  namespace: ecops
+data:
+  SERVER_PORT: "8082"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-case:5432/case_db
+  SPRING_DATASOURCE_USERNAME: ecops
+  KEYCLOAK_JWK_URI: http://keycloak:8085/realms/ecops-realm/protocol/openid-connect/certs
+  KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/ecops-realm
+  CITIZEN_SERVICE_URL: http://citizen-service:8083
+  AUTH_ADMIN_SERVICE_URL: http://auth-admin-service:8081
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: case-service-secret
+  namespace: ecops
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_PASSWORD: ecops_pass
+  ECOPS_INTERNAL_SECRET: prod-internal-secret-change-me
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: case-service
+  namespace: ecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: case-service
+  template:
+    metadata:
+      labels:
+        app: case-service
+    spec:
+      initContainers:
+        - name: wait-keycloak
+          image: busybox:1.36
+          command: ['sh', '-c',
+            'until wget -qO- http://keycloak:8085/realms/master; do echo waiting for keycloak; sleep 5; done']
+        - name: wait-postgres
+          image: busybox:1.36
+          command: ['sh', '-c',
+            'until nc -z postgres-case 5432; do echo waiting for postgres; sleep 2; done']
+      containers:
+        - name: case-service
+          image: ecops/case-service:v19
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: case-service-config
+            - secretRef:
+                name: case-service-secret
+          ports:
+            - containerPort: 8082
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: case-service
+  namespace: ecops
+spec:
+  selector:
+    app: case-service
+  ports:
+    - port: 8082
+      targetPort: 8082

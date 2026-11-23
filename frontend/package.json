@@ -1,0 +1,31 @@
+{
+  "name": "ecops-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^6.0.2",
+    "@tanstack/react-query": "^5.105.0",
+    "axios": "^1.21.0",
+    "date-fns": "^4.1.0",
+    "keycloak-js": "^24.0.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.91.0",
+    "react-router-dom": "^7.18.5",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "~5.8.3",
+    "vite": "^8.3.5"
+  }
+}

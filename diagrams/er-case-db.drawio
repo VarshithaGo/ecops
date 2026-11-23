@@ -1,0 +1,142 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- CASE DB boundary -->
+    <mxCell id="casedb_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="10" y="10" width="1390" height="720" as="geometry"/>
+    </mxCell>
+    <mxCell id="casedb_lbl" value="CASE DB" style="text;html=1;fontStyle=1;fontSize=14;align=left;" vertex="1" parent="1">
+      <mxGeometry x="20" y="15" width="100" height="22" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR Sequence (operational — dashed border) -->
+    <mxCell id="fseq" value="&lt;b&gt;FIR Sequence&lt;/b&gt;&lt;br&gt;PK: station_code + year&lt;br&gt;last_seq&lt;br&gt;&lt;i&gt;(Operational counter)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="780" y="40" width="195" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- Complaints -->
+    <mxCell id="cmp" value="&lt;b&gt;Complaints&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;complaint_number&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="440" y="40" width="195" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- NCR Entries -->
+    <mxCell id="ncr" value="&lt;b&gt;NCR Entries&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: complaint_id&lt;br&gt;ncr_number&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="155" y="210" width="195" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- FIRs -->
+    <mxCell id="fir" value="&lt;b&gt;FIRs&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: complaint_id (optional)&lt;br&gt;fir_number (UNIQUE)&lt;br&gt;is_zero_fir, status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="480" y="210" width="210" height="105" as="geometry"/>
+    </mxCell>
+
+    <!-- IO Assignments -->
+    <mxCell id="io" value="&lt;b&gt;IO Assignments&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id&lt;br&gt;io_officer_id&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="25" y="430" width="165" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- Mahajar Reports -->
+    <mxCell id="mah" value="&lt;b&gt;Mahajar Reports&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id&lt;br&gt;witness_names" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="210" y="430" width="165" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- Property Seizures -->
+    <mxCell id="prop" value="&lt;b&gt;Property Seizures&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="395" y="430" width="165" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- Criminal Records -->
+    <mxCell id="crim" value="&lt;b&gt;Criminal Records&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id&lt;br&gt;role, status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="580" y="430" width="165" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- Arrest Warrants -->
+    <mxCell id="war" value="&lt;b&gt;Arrest Warrants&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="765" y="430" width="165" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- Charge Sheets -->
+    <mxCell id="cs" value="&lt;b&gt;Charge Sheets&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id (UNIQUE)&lt;br&gt;evidence_summary&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="950" y="430" width="165" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- Final Reports -->
+    <mxCell id="fr" value="&lt;b&gt;Final Reports&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id (UNIQUE)&lt;br&gt;report_type&lt;br&gt;status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1135" y="430" width="165" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- Court Disposals -->
+    <mxCell id="cd" value="&lt;b&gt;Court Disposals&lt;/b&gt;&lt;br&gt;PK: id&lt;br&gt;FK: fir_id (UNIQUE)&lt;br&gt;FK: charge_sheet_id (optional)&lt;br&gt;outcome" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1050" y="600" width="200" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== EDGES ===== -->
+
+    <!-- FIR Sequence → FIRs (dashed operational) -->
+    <mxCell id="a_fseq" value="Operational counter — No FK" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#999999;" edge="1" source="fseq" target="fir" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Complaints → NCR Entries (1:0..1) -->
+    <mxCell id="a_cmp_ncr" value="1 : 0..1&lt;br&gt;Business rule" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=open;endFill=0;" edge="1" source="cmp" target="ncr" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Complaints → FIRs (1:0..1) -->
+    <mxCell id="a_cmp_fir" value="1 : 0..1&lt;br&gt;Business rule" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=open;endFill=0;" edge="1" source="cmp" target="fir" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → IO Assignments (1:many) -->
+    <mxCell id="a_fir_io" value="1 : many" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERmany;endFill=0;" edge="1" source="fir" target="io" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Mahajar Reports (1:many) -->
+    <mxCell id="a_fir_mah" value="1 : many" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERmany;endFill=0;" edge="1" source="fir" target="mah" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Property Seizures (1:many) -->
+    <mxCell id="a_fir_prop" value="1 : many" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERmany;endFill=0;" edge="1" source="fir" target="prop" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Criminal Records (1:many) -->
+    <mxCell id="a_fir_crim" value="1 : many" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERmany;endFill=0;" edge="1" source="fir" target="crim" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Arrest Warrants (1:many) -->
+    <mxCell id="a_fir_war" value="1 : many" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERmany;endFill=0;" edge="1" source="fir" target="war" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Charge Sheets (1:0..1) -->
+    <mxCell id="a_fir_cs" value="1 : 0..1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERzeroToOne;endFill=0;" edge="1" source="fir" target="cs" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Final Reports (1:0..1) -->
+    <mxCell id="a_fir_fr" value="1 : 0..1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERzeroToOne;endFill=0;" edge="1" source="fir" target="fr" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- FIR → Court Disposals (1:0..1 — Direct FK, primary parent) -->
+    <mxCell id="a_fir_cd" value="1 : 0..1 — Direct FK" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;endArrow=ERzeroToOne;endFill=0;strokeColor=#d6b656;" edge="1" source="fir" target="cd" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1215" y="262"/>
+          <mxPoint x="1215" y="600"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Charge Sheets → Court Disposals (optional secondary FK) -->
+    <mxCell id="a_cs_cd" value="Optional secondary FK" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#999999;endArrow=ERzeroToOne;endFill=0;" edge="1" source="cs" target="cd" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-auth-admin-pvc
+  namespace: ecops
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth-admin
+  namespace: ecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth-admin
+  template:
+    metadata:
+      labels:
+        app: postgres-auth-admin
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: auth_admin_db
+            - name: POSTGRES_USER
+              value: ecops
+            - name: POSTGRES_PASSWORD
+              value: ecops_pass
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-auth-admin-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth-admin
+  namespace: ecops
+spec:
+  selector:
+    app: postgres-auth-admin
+  ports:
+    - port: 5432
+      targetPort: 5432

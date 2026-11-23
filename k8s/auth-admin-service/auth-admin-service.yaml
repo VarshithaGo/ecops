@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-admin-config
+  namespace: ecops
+data:
+  SERVER_PORT: "8081"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth-admin:5432/auth_admin_db
+  SPRING_DATASOURCE_USERNAME: ecops
+  KEYCLOAK_JWK_URI: http://keycloak:8085/realms/ecops-realm/protocol/openid-connect/certs
+  KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/ecops-realm
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-admin-secret
+  namespace: ecops
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_PASSWORD: ecops_pass
+  ECOPS_INTERNAL_SECRET: prod-internal-secret-change-me
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-admin-service
+  namespace: ecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-admin-service
+  template:
+    metadata:
+      labels:
+        app: auth-admin-service
+    spec:
+      initContainers:
+        - name: wait-keycloak
+          image: busybox:1.36
+          command: ['sh', '-c',
+            'until wget -qO- http://keycloak:8085/realms/master; do echo waiting for keycloak; sleep 5; done']
+        - name: wait-postgres
+          image: busybox:1.36
+          command: ['sh', '-c',
+            'until nc -z postgres-auth-admin 5432; do echo waiting for postgres; sleep 2; done']
+      containers:
+        - name: auth-admin-service
+          image: ecops/auth-admin-service:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: auth-admin-config
+            - secretRef:
+                name: auth-admin-secret
+          ports:
+            - containerPort: 8081
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-admin-service
+  namespace: ecops
+spec:
+  selector:
+    app: auth-admin-service
+  ports:
+    - port: 8081
+      targetPort: 8081

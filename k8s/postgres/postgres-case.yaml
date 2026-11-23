@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-case-pvc
+  namespace: ecops
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-case
+  namespace: ecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-case
+  template:
+    metadata:
+      labels:
+        app: postgres-case
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: case_db
+            - name: POSTGRES_USER
+              value: ecops
+            - name: POSTGRES_PASSWORD
+              value: ecops_pass
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-case-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-case
+  namespace: ecops
+spec:
+  selector:
+    app: postgres-case
+  ports:
+    - port: 5432
+      targetPort: 5432

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-citizen-pvc
+  namespace: ecops
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-citizen
+  namespace: ecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-citizen
+  template:
+    metadata:
+      labels:
+        app: postgres-citizen
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: citizen_db
+            - name: POSTGRES_USER
+              value: ecops
+            - name: POSTGRES_PASSWORD
+              value: ecops_pass
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-citizen-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-citizen
+  namespace: ecops
+spec:
+  selector:
+    app: postgres-citizen
+  ports:
+    - port: 5432
+      targetPort: 5432
