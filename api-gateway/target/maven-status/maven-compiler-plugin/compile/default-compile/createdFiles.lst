@@ -1,0 +1,5 @@
+com/ecops/gateway/filter/AuthHeaderForwardFilter.class
+com/ecops/gateway/filter/AuthHeaderForwardFilter$Config.class
+com/ecops/gateway/filter/AuthHeaderForwardFilter$1.class
+com/ecops/gateway/ApiGatewayApplication.class
+com/ecops/gateway/config/SecurityConfig.class
