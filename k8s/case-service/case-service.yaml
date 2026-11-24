@@ -48,7 +48,7 @@ spec:
             'until nc -z postgres-case 5432; do echo waiting for postgres; sleep 2; done']
       containers:
         - name: case-service
-          image: ecops/case-service:v19
+          image: ecops/case-service:v22
           imagePullPolicy: Never
           envFrom:
             - configMapRef:

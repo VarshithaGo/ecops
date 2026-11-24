@@ -83,6 +83,11 @@ function magistrateSections(): Section[] {
       title: 'Warrants',
       desc: 'Review arrest warrant requests submitted by investigating officers. Issue or reject each request under the appropriate BNSS provision.',
     },
+    {
+      to: '/magistrate/officers',
+      title: 'Officer Directory',
+      desc: 'View all officers — current and previous postings, tenure, and the cases each has registered with their status.',
+    },
   ]
 }
 

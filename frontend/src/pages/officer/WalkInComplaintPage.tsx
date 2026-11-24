@@ -165,6 +165,11 @@ export function WalkInComplaintPage() {
             <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>
               No active stations found.
             </div>
+          ) : myStation ? (
+            <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'default' }}>
+              <span style={{ color: C.ashes }}>{myStation.stationCode} — {myStation.stationName}</span>
+              <span style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.charcoal }}>Your station</span>
+            </div>
           ) : (
             <select value={form.stationId} onChange={set('stationId')} required
               style={{ ...inputStyle }}

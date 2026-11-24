@@ -93,13 +93,13 @@ public class FirController {
     // ---- FIR CRUD ----
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','CITIZEN')")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','CITIZEN','MAGISTRATE')")
     public List<Fir> list() {
         return firRepo.findAll();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','CITIZEN')")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','CITIZEN','MAGISTRATE')")
     public Fir getById(@PathVariable UUID id) {
         return firRepo.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("FIR not found: " + id));

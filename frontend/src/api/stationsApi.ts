@@ -11,5 +11,6 @@ export const stationsApi = {
     api.post(`/stations/${stationId}/zones`, data).then((r) => r.data),
   listAssignments: (stationId: string) =>
     api.get(`/assignments?stationId=${stationId}`).then((r) => r.data),
+  listAllAssignments: () => api.get('/assignments/all').then((r) => r.data),
   assign: (data: unknown) => api.post('/assignments', data).then((r) => r.data),
 }

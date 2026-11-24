@@ -32,4 +32,5 @@ export interface OfficerAssignment {
   badgeNumber: string
   isActive: boolean
   assignedAt: string
+  unassignedAt: string | null
 }

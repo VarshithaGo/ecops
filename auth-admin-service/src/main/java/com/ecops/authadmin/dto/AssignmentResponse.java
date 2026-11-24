@@ -15,5 +15,6 @@ public record AssignmentResponse(
     String         rank,
     String         badgeNumber,
     Boolean        isActive,
-    OffsetDateTime assignedAt
+    OffsetDateTime assignedAt,
+    OffsetDateTime unassignedAt
 ) {}

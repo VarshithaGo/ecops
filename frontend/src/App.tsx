@@ -16,6 +16,7 @@ import { CriminalSearch } from './pages/officer/CriminalSearch'
 import { WalkInComplaintPage } from './pages/officer/WalkInComplaintPage'
 import { WarrantApprovalPage } from './pages/magistrate/WarrantApprovalPage'
 import { MagistrateNCRPage } from './pages/magistrate/MagistrateNCRPage'
+import { MagistrateOfficersPage } from './pages/magistrate/MagistrateOfficersPage'
 import { RegisterPage } from './pages/citizen/RegisterPage'
 import { FileComplaintPage } from './pages/citizen/FileComplaintPage'
 import { TrackCasePage } from './pages/citizen/TrackCasePage'
@@ -103,6 +104,11 @@ function App() {
               <Route path="/magistrate/ncr" element={
                 <ProtectedRoute roles={[ROLES.MAGISTRATE]}>
                   <MagistrateNCRPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/magistrate/officers" element={
+                <ProtectedRoute roles={[ROLES.MAGISTRATE]}>
+                  <MagistrateOfficersPage />
                 </ProtectedRoute>
               } />
 

@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { NavBar } from '../../components/NavBar'
+import { CourtDeadlineAlerts } from '../../components/CourtDeadlineAlerts'
 
 export function AppShell() {
   return (
@@ -19,6 +20,7 @@ export function AppShell() {
       {/* content */}
       <div style={{ position: 'relative', zIndex: 2, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <NavBar />
+        <CourtDeadlineAlerts />
         <main style={{ flex: 1 }}>
           <Outlet />
         </main>

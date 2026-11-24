@@ -1,15 +1,26 @@
-# e-Cops Quick Start
+# e-Cops Quick Start (local — Minikube)
 
-Live cloud deployment — **Vercel** (frontend) + **Render** (services + Keycloak) + **Neon** (database).
+Runs entirely on your machine via Minikube. No cloud, no cold starts — instant and free.
 
-## Live app
+**App:** http://localhost:5173
 
-**https://frontend-five-red-70.vercel.app**
+---
 
-> **First load is slow (~2–3 min).** Render's free tier and the Neon database both sleep after inactivity.
-> Before a demo, open the app once and let it finish loading — that wakes everything. After that it's fast
-> for the session. If a page shows "Failed…" or an empty dropdown on the very first try, the service was
-> still waking — just retry.
+## Daily start (cluster already built)
+
+```bash
+minikube start                       # start the cluster
+kubectl get pods -n ecops            # wait until all 9 show 1/1 Running
+
+# port-forwards (keep these running)
+kubectl port-forward svc/keycloak    8085:8085 -n ecops &
+kubectl port-forward svc/api-gateway 8090:8080 -n ecops &
+
+# frontend
+cd frontend && npm run dev -- --port 5173 --strictPort
+```
+
+Open http://localhost:5173. Port **5173** is required — it's the registered Keycloak redirect URI.
 
 ---
 
@@ -19,17 +30,17 @@ All passwords: `Test@1234`
 
 ### Police officers (each sees only their own station's cases)
 
-| Username        | Name          | Station                    |
-|-----------------|---------------|----------------------------|
-| officer_kumar   | Ravi Kumar    | Indiranagar (BLR-IND)      |
-| officer_desai   | Anjali Desai  | Indiranagar (BLR-IND)      |
-| officer_dpsharm | Deepak Sharma | Koramangala (BLR-KOR)      |
-| officer_pillai  | Meera Pillai  | Koramangala (BLR-KOR)      |
-| officer_nair    | Suresh Nair   | Hoskote (BLR-HSK)          |
-| officer_begum   | Fatima Begum  | Hoskote (BLR-HSK)          |
+| Username        | Name          | Station               |
+|-----------------|---------------|-----------------------|
+| officer_kumar   | Ravi Kumar    | Indiranagar (BLR-IND) |
+| officer_desai   | Anjali Desai  | Indiranagar (BLR-IND) |
+| officer_dpsharm | Deepak Sharma | Koramangala (BLR-KOR) |
+| officer_pillai  | Meera Pillai  | Koramangala (BLR-KOR) |
+| officer_nair    | Suresh Nair   | Hoskote (BLR-HSK)     |
+| officer_begum   | Fatima Begum  | Hoskote (BLR-HSK)     |
 
-> The seeded FIRs / complaints / NCRs are at **Indiranagar**, so log in as **officer_kumar** to see
-> populated data. Koramangala and Hoskote start empty — register a walk-in there to populate them.
+> Seeded FIRs / complaints / NCRs are at **Indiranagar** — log in as **officer_kumar** to see data.
+> Koramangala and Hoskote start empty; register a walk-in there to populate them.
 
 ### Other roles
 
@@ -39,46 +50,97 @@ All passwords: `Test@1234`
 | magistrate_sharma | MAGISTRATE |
 | citizen_test      | CITIZEN    |
 
----
-
-## Service URLs (Render)
-
-| Service      | URL                                        |
-|--------------|--------------------------------------------|
-| Frontend     | https://frontend-five-red-70.vercel.app    |
-| API Gateway  | https://ecops-api-gateway.onrender.com     |
-| Keycloak     | https://ecops-keycloak.onrender.com        |
-| auth-admin   | https://ecops-auth-admin.onrender.com      |
-| case-service | https://ecops-case.onrender.com            |
-| citizen      | https://ecops-citizen.onrender.com         |
-
-Keycloak admin console: https://ecops-keycloak.onrender.com/admin (login set during deployment — not stored in this repo).
+Keycloak admin console: http://localhost:8085/admin — `admin` / `admin123`
 
 ---
 
-## Warm-up before a demo
+## Services & ports
 
-Open these once (any browser tab) ~3 min before demoing to wake all services + the database:
-
-- https://ecops-keycloak.onrender.com/realms/master
-- https://ecops-api-gateway.onrender.com/actuator/health
-- https://ecops-auth-admin.onrender.com/actuator/health
-- https://ecops-case.onrender.com/actuator/health
-- https://ecops-citizen.onrender.com/actuator/health
-
-Then open the app and log in.
+| Service            | Internal Port | Access        |
+|--------------------|---------------|---------------|
+| Keycloak           | 8085          | 8085 (fwd)    |
+| API Gateway        | 8080          | 8090 (fwd)    |
+| auth-admin-service | 8081          | via gateway   |
+| case-service       | 8082          | via gateway   |
+| citizen-service    | 8083          | via gateway   |
+| postgres (×4)      | 5432          | in-cluster    |
 
 ---
 
-## Local development (optional)
+## Full rebuild (fresh cluster — all data recreated)
 
-The frontend can run locally against the live Render backend:
+Deploy **one service at a time** (avoids overloading Minikube).
 
 ```bash
-cd frontend
-npm install
-npm run dev   # http://localhost:5173
+minikube start
+kubectl apply -f k8s/namespace.yaml
+
+# 1. Databases (one by one)
+kubectl apply -f k8s/postgres/postgres-auth-admin.yaml -n ecops
+kubectl rollout status deploy/postgres-auth-admin -n ecops
+kubectl apply -f k8s/postgres/postgres-case.yaml -n ecops
+kubectl rollout status deploy/postgres-case -n ecops
+kubectl apply -f k8s/postgres/postgres-citizen.yaml -n ecops
+kubectl rollout status deploy/postgres-citizen -n ecops
+
+# 2. Keycloak (includes its own postgres)
+kubectl apply -f k8s/keycloak/keycloak.yaml -n ecops
+kubectl rollout status deploy/keycloak -n ecops
+
+# 3. Build + deploy each Java service (one by one)
+#    Images are built from the multi-stage Dockerfiles in docker/render/
+for S in "case-service:v19" "auth-admin-service:latest" "citizen-service:latest" "api-gateway:latest"; do
+  NAME=${S%%:*}; TAG=${S##*:}
+  docker build -f docker/render/$NAME.Dockerfile -t ecops/$NAME:$TAG .
+  minikube image load ecops/$NAME:$TAG
+  kubectl apply -f k8s/$NAME/$NAME.yaml -n ecops
+  kubectl rollout status deploy/$NAME -n ecops
+done
 ```
 
-`vercel.json` proxies `/api` to the Render gateway; `localhost:5173` is already a registered
-Keycloak redirect URI, so login works locally too.
+### Then restore realm + users + data
+
+```bash
+# start the keycloak port-forward first
+kubectl port-forward svc/keycloak 8085:8085 -n ecops &
+bash deploy-seed/local-setup.sh     # creates realm/clients/roles/users, loads data, splits officers by station
+```
+
+### Push the login theme (not persistent across pod restarts)
+
+```bash
+KP=$(kubectl get pod -n ecops -l app=keycloak -o jsonpath='{.items[0].metadata.name}')
+D=/opt/keycloak/themes/ecops-theme/login
+kubectl exec -n ecops "$KP" -c keycloak -- sh -c "mkdir -p $D/resources/img"
+kubectl exec -i -n ecops "$KP" -c keycloak -- sh -c "cat > $D/theme.properties" < keycloak-theme/ecops-theme/login/theme.properties
+kubectl exec -i -n ecops "$KP" -c keycloak -- sh -c "cat > $D/login.ftl"        < keycloak-theme/ecops-theme/login/login.ftl
+base64 < keycloak-theme/ecops-theme/login/resources/img/crime-tape.png | \
+  kubectl exec -i -n ecops "$KP" -c keycloak -- sh -c "base64 -d > $D/resources/img/crime-tape.png"
+kubectl exec -n ecops "$KP" -c keycloak -- /opt/keycloak/bin/kcadm.sh config credentials \
+  --server http://localhost:8080 --realm master --user admin --password admin123
+kubectl exec -n ecops "$KP" -c keycloak -- /opt/keycloak/bin/kcadm.sh update realms/ecops-realm -s loginTheme=ecops-theme
+```
+
+---
+
+## Rebuild a single service (after code change)
+
+```bash
+docker build -f docker/render/case-service.Dockerfile -t ecops/case-service:v19 .
+minikube image load ecops/case-service:v19
+kubectl scale deploy/case-service -n ecops --replicas=0
+kubectl scale deploy/case-service -n ecops --replicas=1
+kubectl rollout status deploy/case-service -n ecops
+```
+
+---
+
+## Health / logs
+
+```bash
+kubectl get pods -n ecops
+kubectl logs -n ecops deploy/case-service --tail=50
+```
+
+> Note: a cloud deployment (Vercel + Render + Neon) was also built; those artifacts remain in
+> `docker/render/`, `.github/workflows/`, and `deploy-seed/`, but **Minikube is the active setup**.

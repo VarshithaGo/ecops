@@ -46,7 +46,7 @@ spec:
             'until nc -z postgres-auth-admin 5432; do echo waiting for postgres; sleep 2; done']
       containers:
         - name: auth-admin-service
-          image: ecops/auth-admin-service:latest
+          image: ecops/auth-admin-service:v2
           imagePullPolicy: Never
           envFrom:
             - configMapRef:

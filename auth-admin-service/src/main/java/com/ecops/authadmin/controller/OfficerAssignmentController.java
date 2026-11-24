@@ -32,6 +32,12 @@ public class OfficerAssignmentController {
         return assignmentService.listByStation(stationId);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN','MAGISTRATE')")
+    public List<AssignmentResponse> listAll() {
+        return assignmentService.listAll();
+    }
+
     @GetMapping("/officer/{keycloakUserId}")
     @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER')")
     public AssignmentResponse getByOfficer(@PathVariable String keycloakUserId) {
