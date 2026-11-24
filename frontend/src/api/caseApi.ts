@@ -42,6 +42,8 @@ export const caseApi = {
     api.post(`/firs/${firId}/court-disposal`, data).then((r) => r.data),
   getFirCourtDisposal: (firId: string) =>
     api.get(`/firs/${firId}/court-disposal`).then((r) => r.data),
+  requestCourtVerdict: (firId: string) =>
+    api.post(`/firs/${firId}/court-verdict`).then((r) => r.data),
 
   // Audit trail + BNSS §193 deadline
   getFirAudit: (firId: string) =>

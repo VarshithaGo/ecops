@@ -454,6 +454,50 @@ public class CaseWorkflowService {
         return saved;
     }
 
+    // ---- Court Verdict (simulated — the court's decision, not the station's) ----
+
+    @Transactional
+    public CourtDisposal requestCourtVerdict(UUID firId, String actorId) {
+        Fir fir = findFirOrThrow(firId);
+        ChargeSheet cs = chargeSheetRepo.findByFirId(firId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Case has not been charge-sheeted; it cannot go to court yet."));
+        if (disposalRepo.findByFirId(firId).isPresent()) {
+            throw new IllegalStateException("The court has already delivered a verdict for this case.");
+        }
+
+        // The verdict belongs to the COURT, not the station — simulated with a random outcome.
+        String[] verdicts = {"CONVICTED", "ACQUITTED", "DISCHARGED"};
+        String[] judges = {"Hon'ble Judge R. Menon", "Hon'ble Judge S. Iyer",
+                           "Hon'ble Judge A. Khan", "Hon'ble Judge P. Nair"};
+        java.util.Random rnd = new java.util.Random();
+        String outcome = verdicts[rnd.nextInt(verdicts.length)];
+        String judge = judges[rnd.nextInt(judges.length)];
+
+        CourtDisposal cd = CourtDisposal.builder()
+                .fir(fir).chargeSheet(cs).courtName(cs.getCourtName())
+                .judgeName(judge).judgmentDate(LocalDate.now()).outcome(outcome)
+                .remarks("Verdict delivered by the court (auto-generated for the demo).").build();
+        disposalRepo.save(cd);
+
+        fir.setStatus("COURT_DISPOSED");
+        firRepo.save(fir);
+
+        // An accused becomes a convicted criminal ONLY if the court finds them guilty.
+        boolean guilty = "CONVICTED".equals(outcome);
+        for (CriminalRecord cr : criminalRepo.findByFirId(firId)) {
+            if ("SUSPECT".equals(cr.getRole()) || "ACCUSED".equals(cr.getRole())) {
+                if (guilty) { cr.setStatus("CONVICTED"); cr.setRole("CONVICTED_PERSON"); }
+                else { cr.setStatus("RELEASED"); }
+                criminalRepo.save(cr);
+            }
+        }
+
+        auditService.record("COURT", cd.getId(), fir.getId(), actorId, ROLE_MAGISTRATE,
+                "COURT_VERDICT", null, outcome, "Court verdict: " + outcome + " before " + judge);
+        return cd;
+    }
+
     // ---- Helpers ----
 
     private Fir findFirOrThrow(UUID firId) {

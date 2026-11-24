@@ -244,6 +244,14 @@ public class FirController {
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("No disposal for FIR: " + id));
     }
 
+    /** Case goes to court; the court returns a verdict (simulated, random — not the station's decision). */
+    @PostMapping("/{id}/court-verdict")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    public CourtDisposal requestCourtVerdict(@PathVariable UUID id,
+                                             @RequestHeader("X-User-Id") String userId) {
+        return workflowService.requestCourtVerdict(id, userId);
+    }
+
     @PutMapping("/{id}/transfer")
     @PreAuthorize("hasRole('POLICE_OFFICER')")
     public Fir transferFir(@PathVariable UUID id,

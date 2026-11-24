@@ -4,19 +4,25 @@ import { SectionPanel } from '../../../components/SectionPanel'
 import { DetailRow } from '../../../components/DetailRow'
 import { ChargeSheet, FinalReport } from '../../../types/case.types'
 import { caseApi } from '../../../api/caseApi'
+import { useCourtDisposal } from '../../../hooks/useFIRData'
+import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
-import { C } from '../../../theme'
-const inp: React.CSSProperties = { padding: '10px 14px', background: C.bark, color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, width: '100%', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }
-const lbl: React.CSSProperties = { display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }
+const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
+const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
+const btnPrimary: React.CSSProperties = { padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: A.accent, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', alignSelf: 'flex-start' }
 
+// Final Report (closure) types. NOTE: standard police convention is
+// A = true-but-untraced, B = false, C = mistake/insufficient. Labels below follow
+// the project's stated mapping (A = charge sheet, B = false, C = untraced).
 const REPORT_TYPES = [
-  { value: 'A', label: 'A — Untraced (accused not found)' },
-  { value: 'B', label: 'B — False complaint' },
-  { value: 'C', label: 'C — Lack of evidence' },
+  { value: 'A', label: 'A — Charge sheet (accused found, charges filed)' },
+  { value: 'B', label: 'B — False case' },
+  { value: 'C', label: 'C — Untraced case (accused not found)' },
 ]
 
-type FormMode = 'charge-sheet' | 'final-report'
+const VERDICT_COLOR: Record<string, string> = { CONVICTED: '#B91C1C', ACQUITTED: '#15803D', DISCHARGED: '#B45309' }
 
+type FormMode = 'charge-sheet' | 'final-report'
 interface Props { firId: string; chargeSheet: ChargeSheet | null; finalReport: FinalReport | null }
 
 export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
@@ -27,6 +33,8 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
   const setFrField = (k: keyof typeof fr) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setFr((p) => ({ ...p, [k]: e.target.value }))
   const setCsField = (k: keyof typeof cs) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setCs((p) => ({ ...p, [k]: e.target.value }))
 
+  const { data: disposal = null } = useCourtDisposal(firId)
+
   const fileCs = useMutation({
     mutationFn: () => caseApi.fileChargeSheet(firId, { ...cs, evidenceSummary: cs.evidenceSummary || null, witnessList: cs.witnessList || null }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-chargesheet', firId] }); qc.invalidateQueries({ queryKey: ['fir', firId] }) },
@@ -34,6 +42,14 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
   const fileFr = useMutation({
     mutationFn: () => caseApi.fileFinalReport(firId, fr),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-finalreport', firId] }); qc.invalidateQueries({ queryKey: ['fir', firId] }) },
+  })
+  const verdict = useMutation({
+    mutationFn: () => caseApi.requestCourtVerdict(firId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['fir-disposal', firId] })
+      qc.invalidateQueries({ queryKey: ['fir', firId] })
+      qc.invalidateQueries({ queryKey: ['fir-criminals', firId] })
+    },
   })
 
   if (chargeSheet) {
@@ -45,6 +61,34 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
         <DetailRow label="Accused Details" value={chargeSheet.accusedDetails} />
         {chargeSheet.evidenceSummary && <DetailRow label="Evidence Summary" value={chargeSheet.evidenceSummary} />}
         {chargeSheet.witnessList && <DetailRow label="Witness List" value={chargeSheet.witnessList} />}
+
+        {/* Court verdict — decided by the court, not the station */}
+        <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${C.bark}`, fontFamily: FONT.ui }}>
+          {disposal ? (
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.charcoal, marginBottom: 6 }}>Court verdict</div>
+              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 8, fontSize: 15, fontWeight: 700, color: VERDICT_COLOR[disposal.outcome] ?? C.ashes, border: `1.5px solid ${VERDICT_COLOR[disposal.outcome] ?? C.charcoal}` }}>
+                {disposal.outcome}
+              </div>
+              <div style={{ fontSize: 13, color: C.charcoal, marginTop: 8 }}>
+                {disposal.judgeName} · {disposal.courtName}{disposal.judgmentDate ? ` · ${disposal.judgmentDate}` : ''}
+              </div>
+              {disposal.outcome === 'CONVICTED'
+                ? <div style={{ fontSize: 13, color: '#B91C1C', marginTop: 6 }}>Accused found guilty — criminal records updated to CONVICTED.</div>
+                : <div style={{ fontSize: 13, color: '#15803D', marginTop: 6 }}>Accused not convicted — released; they remain non-criminals.</div>}
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: 13, color: C.charcoal, marginBottom: 10, lineHeight: 1.5 }}>
+                The case has been filed in court. The <strong>verdict is the court's decision</strong>, not the station's — request it below.
+              </div>
+              {verdict.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 10 }}>Could not get the verdict. Try again.</div>}
+              <button onClick={() => verdict.mutate()} disabled={verdict.isPending} style={{ ...btnPrimary, background: verdict.isPending ? '#9DB2CC' : A.accent }}>
+                {verdict.isPending ? 'Awaiting court…' : 'Request court verdict'}
+              </button>
+            </div>
+          )}
+        </div>
       </SectionPanel>
     )
   }
@@ -61,31 +105,32 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
     )
   }
 
+  const toggle = (m: FormMode, label: string) => (
+    <button key={m} onClick={() => setMode(m)}
+      style={{ padding: '8px 16px', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, background: mode === m ? A.accentSoft : '#fff', color: mode === m ? A.accent : C.charcoal, border: `1px solid ${mode === m ? A.accent : C.bark}`, borderRadius: 8, cursor: 'pointer' }}>
+      {label}
+    </button>
+  )
+
   const addForm = (
-    <div>
-      {/* Mode toggle */}
+    <div style={{ fontFamily: FONT.ui }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {(['charge-sheet', 'final-report'] as FormMode[]).map((m) => (
-          <button key={m} onClick={() => setMode(m)}
-            style={{ padding: '7px 16px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.1em', background: 'transparent', color: mode === m ? C.ashes : C.charcoal, border: `2px solid ${mode === m ? C.charcoal : C.bark}`, borderRadius: 3, cursor: 'pointer' }}>
-            {m === 'charge-sheet' ? 'CHARGE SHEET' : 'FINAL REPORT (A/B/C)'}
-          </button>
-        ))}
+        {toggle('charge-sheet', 'Charge Sheet')}
+        {toggle('final-report', 'Final Report (A/B/C)')}
       </div>
 
       {mode === 'charge-sheet' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 2 }}><label style={lbl}>Court Name</label><input value={cs.courtName} onChange={setCsField('courtName')} style={inp} /></div>
-            <div style={{ flex: 1 }}><label style={lbl}>Submission Date</label><input type="date" value={cs.submissionDate} onChange={setCsField('submissionDate')} style={inp} /></div>
+            <div style={{ flex: 2 }}><label style={lbl}>Court name</label><input value={cs.courtName} onChange={setCsField('courtName')} style={inp} /></div>
+            <div style={{ flex: 1 }}><label style={lbl}>Submission date</label><input type="date" value={cs.submissionDate} onChange={setCsField('submissionDate')} style={inp} /></div>
           </div>
-          <div><label style={lbl}>Sections Invoked (IPC/BNSS)</label><input value={cs.sectionsInvoked} onChange={setCsField('sectionsInvoked')} style={inp} placeholder="e.g. 302, 307 IPC" /></div>
-          <div><label style={lbl}>Accused Details</label><textarea rows={2} value={cs.accusedDetails} onChange={setCsField('accusedDetails')} style={{ ...inp, resize: 'vertical' }} /></div>
-          <div><label style={lbl}>Evidence Summary <span style={{ opacity: 0.6 }}>(optional)</span></label><textarea rows={2} value={cs.evidenceSummary} onChange={setCsField('evidenceSummary')} style={{ ...inp, resize: 'vertical' }} /></div>
-          <div><label style={lbl}>Witness List <span style={{ opacity: 0.6 }}>(optional)</span></label><input value={cs.witnessList} onChange={setCsField('witnessList')} style={inp} /></div>
-          <button onClick={() => fileCs.mutate()} disabled={!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked || fileCs.isPending}
-            style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, cursor: 'pointer', alignSelf: 'flex-start' }}>
-            {fileCs.isPending ? 'FILING…' : 'FILE CHARGE SHEET'}
+          <div><label style={lbl}>Sections invoked (BNS/IPC)</label><input value={cs.sectionsInvoked} onChange={setCsField('sectionsInvoked')} style={inp} placeholder="e.g. BNS 303(2), 305" /></div>
+          <div><label style={lbl}>Offence brief / accused details</label><textarea rows={3} value={cs.accusedDetails} onChange={setCsField('accusedDetails')} style={{ ...inp, resize: 'vertical' }} placeholder="Detailed brief of the offence and the accused" /></div>
+          <div><label style={lbl}>Evidence summary <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><textarea rows={2} value={cs.evidenceSummary} onChange={setCsField('evidenceSummary')} style={{ ...inp, resize: 'vertical' }} /></div>
+          <div><label style={lbl}>Witness list <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={cs.witnessList} onChange={setCsField('witnessList')} style={inp} /></div>
+          <button onClick={() => fileCs.mutate()} disabled={!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked || fileCs.isPending} style={{ ...btnPrimary, background: (!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked) ? '#9DB2CC' : A.accent }}>
+            {fileCs.isPending ? 'Filing…' : 'File charge sheet'}
           </button>
         </div>
       )}
@@ -93,30 +138,28 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
       {mode === 'final-report' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label style={lbl}>Report Type</label>
+            <label style={lbl}>Report type</label>
             <select value={fr.reportType} onChange={setFrField('reportType')} style={inp}>
               {REPORT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 2 }}><label style={lbl}>Court Name</label><input value={fr.courtName} onChange={setFrField('courtName')} style={inp} /></div>
-            <div style={{ flex: 1 }}><label style={lbl}>Submission Date</label><input type="date" value={fr.submissionDate} onChange={setFrField('submissionDate')} style={inp} /></div>
+            <div style={{ flex: 2 }}><label style={lbl}>Court name</label><input value={fr.courtName} onChange={setFrField('courtName')} style={inp} /></div>
+            <div style={{ flex: 1 }}><label style={lbl}>Submission date</label><input type="date" value={fr.submissionDate} onChange={setFrField('submissionDate')} style={inp} /></div>
           </div>
           <div><label style={lbl}>Remarks</label><textarea rows={3} value={fr.remarks} onChange={setFrField('remarks')} style={{ ...inp, resize: 'vertical' }} /></div>
-          <button onClick={() => fileFr.mutate()} disabled={!fr.courtName || !fr.submissionDate || !fr.remarks || fileFr.isPending}
-            style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: '#f87171', border: '2px solid #f87171', borderRadius: 3, cursor: 'pointer', alignSelf: 'flex-start' }}>
-            {fileFr.isPending ? 'FILING…' : 'FILE FINAL REPORT'}
+          <button onClick={() => fileFr.mutate()} disabled={!fr.courtName || !fr.submissionDate || !fr.remarks || fileFr.isPending} style={{ ...btnPrimary, background: (!fr.courtName || !fr.submissionDate || !fr.remarks) ? '#9DB2CC' : A.accent }}>
+            {fileFr.isPending ? 'Filing…' : 'File final report'}
           </button>
         </div>
       )}
-      <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; } select option { background: ${C.bark}; color: ${C.ashes}; }`}</style>
     </div>
   )
 
   return (
     <SectionPanel title="Final Disposition" addLabel="File Report" addForm={addForm} defaultOpen={false}>
-      <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>
-        No final disposition filed. File a Charge Sheet or Final Report (A/B/C).
+      <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>
+        No final disposition filed. File a Charge Sheet (case goes to court) or a Final Report (A/B/C).
       </p>
     </SectionPanel>
   )
