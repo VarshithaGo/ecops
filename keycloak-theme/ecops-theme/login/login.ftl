@@ -49,6 +49,14 @@
       border-color: #1C4E80; box-shadow: 0 0 0 3px rgba(28,78,128,0.15);
     }
     input::placeholder { color: #9AA4B0; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 4px; top: 0; bottom: 0; width: 38px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer; color: #5A6676; padding: 0;
+    }
+    .pw-toggle:hover { color: #1C4E80; }
     .btn-signin {
       width: 100%; padding: 13px 0; margin-top: 6px;
       background: #1C4E80; color: #fff; border: none; border-radius: 8px;
@@ -96,8 +104,18 @@
 
       <div class="field">
         <label for="password">Password</label>
-        <input id="password" name="password" type="password"
-               placeholder="Enter your password" autocomplete="current-password"/>
+        <div class="pw-wrap">
+          <input id="password" name="password" type="password"
+                 placeholder="Enter your password" autocomplete="current-password"/>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" onclick="togglePw()">
+            <svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="eyeOff" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68M6.06 6.06A13.2 13.2 0 0 0 2 11s3.5 7 10 7a9.12 9.12 0 0 0 5.94-2.06"/><path d="m1 1 22 22"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <button class="btn-signin" type="submit" name="login">Sign in</button>
@@ -105,5 +123,15 @@
 
     <p class="footer-note">Authorised personnel only · BNSS 2023<br/>Government of Karnataka</p>
   </div>
+  <script>
+    function togglePw() {
+      var i = document.getElementById('password');
+      var show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      document.getElementById('pwToggle').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      document.getElementById('eyeOpen').style.display = show ? 'none' : 'block';
+      document.getElementById('eyeOff').style.display = show ? 'block' : 'none';
+    }
+  </script>
 </body>
 </html>
