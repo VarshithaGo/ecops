@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import { useMyStation } from '../hooks/useMyStation'
 import { ROLES } from '../utils/roles'
 
 const C = { angst: '#0A0A0A', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE', kite: '#371E1E' }
@@ -20,6 +21,7 @@ const LINKS: { to: string; label: string; roles: string[] }[] = [
 export function NavBar() {
   const { roles, logout } = useAuth()
   const location = useLocation()
+  const { data: myStation } = useMyStation()
   const visible = LINKS.filter((l) => l.roles.some((r) => roles.includes(r)))
 
   return (
@@ -66,6 +68,18 @@ export function NavBar() {
         })}
       </div>
 
+      {myStation && (
+        <div style={{
+          marginLeft: 12, textAlign: 'right', whiteSpace: 'nowrap',
+          fontFamily: "'Space Grotesk', system-ui, sans-serif",
+          borderLeft: `2px solid ${C.bark}`, paddingLeft: 16,
+        }}>
+          <div style={{ fontSize: 12, color: C.ashes, fontWeight: 600 }}>{myStation.officerName ?? 'Officer'}</div>
+          <div style={{ fontSize: 10, color: C.charcoal, letterSpacing: '0.06em' }}>
+            {myStation.stationName} · {myStation.stationCode}
+          </div>
+        </div>
+      )}
       <button onClick={logout} style={{
         marginLeft: 16,
         fontFamily: 'Anton, Impact, sans-serif',

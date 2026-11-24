@@ -5,6 +5,9 @@ import { Station } from '../../types/admin.types'
 import { stationsApi } from '../../api/stationsApi'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
+import { useAuth } from '../../auth/AuthProvider'
+import { useMyStation } from '../../hooks/useMyStation'
+import { ROLES } from '../../utils/roles'
 
 const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
 
@@ -26,7 +29,11 @@ export function NCRList() {
   const qc = useQueryClient()
   const { data, isLoading, error } = useQuery<NcrEntry[]>({ queryKey: ['ncr'], queryFn: caseApi.listNcr })
   const { data: stations = [] } = useQuery<Station[]>({ queryKey: ['stations'], queryFn: stationsApi.list })
+  const { roles } = useAuth()
+  const { data: myStation } = useMyStation()
+  const isAdmin = roles.includes(ROLES.ADMIN)
   const stationMap = Object.fromEntries(stations.map((s) => [s.id, s.stationCode]))
+  const entries = (data ?? []).filter((n) => isAdmin || !myStation || n.stationId === myStation.stationId)
 
   const refer = useMutation({
     mutationFn: (id: string) => caseApi.referNcrToMagistrate(id),
@@ -58,7 +65,7 @@ export function NCRList() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((ncr) => (
+            {entries.map((ncr) => (
               <tr key={ncr.id}
                 onMouseEnter={(e) => (e.currentTarget.style.background = `${C.bark}88`)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
@@ -93,7 +100,7 @@ export function NCRList() {
                 </td>
               </tr>
             ))}
-            {data?.length === 0 && (
+            {entries.length === 0 && (
               <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No NCR entries.</td></tr>
             )}
           </tbody>

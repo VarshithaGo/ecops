@@ -3,6 +3,8 @@ import { caseApi } from '../../api/caseApi'
 import { Complaint } from '../../types/case.types'
 import { useState } from 'react'
 import { useAuth } from '../../auth/AuthProvider'
+import { useMyStation } from '../../hooks/useMyStation'
+import { ROLES } from '../../utils/roles'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
 
@@ -28,7 +30,10 @@ export function ComplaintsInbox() {
   const [selected, setSelected] = useState<string | null>(null)
   const [offenseType, setOffenseType] = useState('COGNIZABLE')
   const [isZeroFir, setIsZeroFir] = useState(false)
-  const { userId } = useAuth()
+  const { userId, roles } = useAuth()
+  const { data: myStation } = useMyStation()
+  const isAdmin = roles.includes(ROLES.ADMIN)
+  const complaints = (data ?? []).filter((c) => isAdmin || !myStation || c.stationId === myStation.stationId)
 
   const categorize = useMutation({
     mutationFn: ({ id, offenseType, isZeroFir }: { id: string; offenseType: string; isZeroFir: boolean }) =>
@@ -66,7 +71,7 @@ export function ComplaintsInbox() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((c) => (
+            {complaints.map((c) => (
               <tr key={c.id} style={{ background: 'transparent' }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = `${C.bark}88`)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
@@ -91,7 +96,7 @@ export function ComplaintsInbox() {
                 </td>
               </tr>
             ))}
-            {data?.length === 0 && (
+            {complaints.length === 0 && (
               <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No complaints.</td></tr>
             )}
           </tbody>

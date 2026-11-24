@@ -144,7 +144,7 @@ function InstructionCard({ section }: { section: Section }) {
 }
 
 export function Dashboard() {
-  const { roles, username } = useAuth()
+  const { roles } = useAuth()
 
   const sections = roles.includes(ROLES.ADMIN)      ? adminSections()
                  : roles.includes(ROLES.OFFICER)    ? officerSections()

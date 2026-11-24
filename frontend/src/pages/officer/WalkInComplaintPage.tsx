@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { caseApi } from '../../api/caseApi'
 import { stationsApi } from '../../api/stationsApi'
+import { Station } from '../../types/admin.types'
+import { useMyStation } from '../../hooks/useMyStation'
 import { useNavigate } from 'react-router-dom'
 
 const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
@@ -60,10 +62,20 @@ export function WalkInComplaintPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const { data: stations = [] } = useQuery<{ id: string; stationCode: string; name: string }[]>({
-    queryKey: ['stations'],
-    queryFn: stationsApi.list,
-  })
+  const { data: stations = [], isLoading: stationsLoading, isError: stationsError, refetch: refetchStations } =
+    useQuery<Station[]>({
+      queryKey: ['stations'],
+      queryFn: stationsApi.list,
+    })
+  const activeStations = stations.filter((s) => s.status === 'ACTIVE')
+  const { data: myStation } = useMyStation()
+
+  // Default the station to the logged-in officer's own station once known.
+  useEffect(() => {
+    if (myStation?.stationId && !form.stationId) {
+      setForm((f) => ({ ...f, stationId: myStation.stationId }))
+    }
+  }, [myStation, form.stationId])
 
   const mutation = useMutation({
     mutationFn: (data: WalkInForm) => caseApi.fileWalkInComplaint(data),
@@ -137,16 +149,34 @@ export function WalkInComplaintPage() {
         {/* Station */}
         <section style={{ marginBottom: 28 }}>
           <div style={sectionHeadStyle}>Station</div>
-          <select value={form.stationId} onChange={set('stationId')} required
-            style={{ ...inputStyle }}
-            onFocus={focusIn} onBlur={focusOut}>
-            <option value="" style={{ background: C.bark, color: C.charcoal }}>Select station</option>
-            {stations.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: C.bark, color: C.ashes }}>
-                {s.stationCode} — {s.name}
-              </option>
-            ))}
-          </select>
+          {stationsLoading ? (
+            <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13, padding: '10px 0' }}>
+              Loading stations… (services may take a moment to wake up on first use)
+            </div>
+          ) : stationsError ? (
+            <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#fb923c', fontSize: 13 }}>
+              Couldn’t load stations — the server may be waking up.{' '}
+              <button type="button" onClick={() => refetchStations()}
+                style={{ background: 'transparent', border: `1px solid ${C.charcoal}`, color: C.ashes, borderRadius: 3, padding: '2px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                Retry
+              </button>
+            </div>
+          ) : activeStations.length === 0 ? (
+            <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>
+              No active stations found.
+            </div>
+          ) : (
+            <select value={form.stationId} onChange={set('stationId')} required
+              style={{ ...inputStyle }}
+              onFocus={focusIn} onBlur={focusOut}>
+              <option value="" style={{ background: C.bark, color: C.charcoal }}>Select station</option>
+              {activeStations.map((s) => (
+                <option key={s.id} value={s.id} style={{ background: C.bark, color: C.ashes }}>
+                  {s.stationCode} — {s.stationName}
+                </option>
+              ))}
+            </select>
+          )}
         </section>
 
         {/* Complainant Details */}
@@ -162,6 +192,7 @@ export function WalkInComplaintPage() {
             <div>
               <label style={labelStyle}>Phone</label>
               <input value={form.walkInPhone} onChange={set('walkInPhone')}
+                type="tel" pattern="[0-9]{10}" title="Enter a 10-digit phone number" inputMode="numeric" maxLength={10}
                 style={inputStyle} placeholder="e.g. 9876543210"
                 onFocus={focusIn} onBlur={focusOut} />
             </div>

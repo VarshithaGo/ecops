@@ -4,6 +4,9 @@ import { caseApi } from '../../api/caseApi'
 import { Fir } from '../../types/case.types'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
+import { useAuth } from '../../auth/AuthProvider'
+import { useMyStation } from '../../hooks/useMyStation'
+import { ROLES } from '../../utils/roles'
 
 const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
 
@@ -32,6 +35,10 @@ function needsCourtWarning(fir: Fir): boolean {
 
 export function FIRList() {
   const { data, isLoading, error } = useQuery<Fir[]>({ queryKey: ['firs'], queryFn: caseApi.listFirs })
+  const { roles } = useAuth()
+  const { data: myStation } = useMyStation()
+  const isAdmin = roles.includes(ROLES.ADMIN)
+  const firs = (data ?? []).filter((f) => isAdmin || !myStation || f.stationCode === myStation.stationCode)
 
   if (isLoading) return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal }}>Loading FIRs...</div>
   if (error)     return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#f87171' }}>Error loading FIRs.</div>
@@ -60,7 +67,7 @@ export function FIRList() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((fir) => (
+            {firs.map((fir) => (
               <tr key={fir.id}
                 onMouseEnter={(e) => (e.currentTarget.style.background = `${C.bark}88`)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
@@ -94,7 +101,7 @@ export function FIRList() {
                 </td>
               </tr>
             ))}
-            {data?.length === 0 && (
+            {firs.length === 0 && (
               <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No FIRs on record.</td></tr>
             )}
           </tbody>

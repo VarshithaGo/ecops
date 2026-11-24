@@ -11,7 +11,7 @@ interface SectionPanelProps {
   defaultOpen?: boolean
 }
 
-export function SectionPanel({ title, count, children, addLabel, addForm, defaultOpen = true }: SectionPanelProps) {
+export function SectionPanel({ title, children, addLabel, addForm, defaultOpen = true }: SectionPanelProps) {
   const [open, setOpen] = useState(defaultOpen)
   const [showForm, setShowForm] = useState(false)
 
