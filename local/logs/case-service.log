@@ -35,57 +35,35 @@
 
  :: Spring Boot ::                (v3.3.5)
 
-2026-11-24T20:55:27.373+05:30  INFO 71110 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : Starting CaseServiceApplication using Java 21.0.13.1 with PID 71110 (/Users/I578472/Downloads/ecops/case-service/target/classes started by I578472 in /Users/I578472/Downloads/ecops/case-service)
-2026-11-24T20:55:27.375+05:30  INFO 71110 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : No active profile set, falling back to 1 default profile: "default"
-2026-11-24T20:55:27.915+05:30  INFO 71110 --- [case-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-11-24T20:55:27.961+05:30  INFO 71110 --- [case-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 43 ms. Found 13 JPA repository interfaces.
-2026-11-24T20:55:28.416+05:30  INFO 71110 --- [case-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8082 (http)
-2026-11-24T20:55:28.423+05:30  INFO 71110 --- [case-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-11-24T20:55:28.423+05:30  INFO 71110 --- [case-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
-2026-11-24T20:55:28.473+05:30  INFO 71110 --- [case-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-11-24T20:55:28.474+05:30  INFO 71110 --- [case-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1074 ms
-2026-11-24T20:55:28.756+05:30  INFO 71110 --- [case-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-11-24T20:55:28.892+05:30  INFO 71110 --- [case-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@6253e59a
-2026-11-24T20:55:28.893+05:30  INFO 71110 --- [case-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-11-24T20:55:28.914+05:30  INFO 71110 --- [case-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5434/case_db (PostgreSQL 16.13)
-2026-11-24T20:55:28.957+05:30  INFO 71110 --- [case-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
-2026-11-24T20:55:28.959+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.027s)
-2026-11-24T20:55:28.994+05:30  INFO 71110 --- [case-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
-2026-11-24T20:55:29.018+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
-2026-11-24T20:55:29.023+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - create complaints"
-2026-11-24T20:55:29.054+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - create ncr entries"
-2026-11-24T20:55:29.069+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - create fir sequence"
-2026-11-24T20:55:29.084+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "4 - create firs"
-2026-11-24T20:55:29.107+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "5 - create io assignments"
-2026-11-24T20:55:29.119+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "6 - create mahajar reports"
-2026-11-24T20:55:29.149+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "7 - create property seizures"
-2026-11-24T20:55:29.160+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "8 - create criminal records"
-2026-11-24T20:55:29.175+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "9 - create arrest warrants"
-2026-11-24T20:55:29.191+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "10 - create charge sheets"
-2026-11-24T20:55:29.207+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "11 - create final reports"
-2026-11-24T20:55:29.219+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "12 - create court disposals"
-2026-11-24T20:55:29.229+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "13 - add criminal record role"
-2026-11-24T20:55:29.239+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "14 - add zero fir fields"
-2026-11-24T20:55:29.246+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "15 - rename warrant statuses"
-2026-11-24T20:55:29.256+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "16 - add ncr magistrate order"
-2026-11-24T20:55:29.265+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "17 - add walk in complaint fields"
-2026-11-24T20:55:29.272+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "18 - add remand court to firs"
-2026-11-24T20:55:29.281+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "19 - rename at large to not arrested"
-2026-11-24T20:55:29.288+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "20 - create audit events"
-2026-11-24T20:55:29.307+05:30  INFO 71110 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 20 migrations to schema "public", now at version v20 (execution time 00:00.118s)
-2026-11-24T20:55:29.356+05:30  INFO 71110 --- [case-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-11-24T20:55:29.375+05:30  INFO 71110 --- [case-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
-2026-11-24T20:55:29.387+05:30  INFO 71110 --- [case-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-11-24T20:55:29.508+05:30  INFO 71110 --- [case-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-11-24T20:55:29.533+05:30  WARN 71110 --- [case-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-11-24T20:55:30.024+05:30  INFO 71110 --- [case-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-11-24T20:55:30.075+05:30  INFO 71110 --- [case-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-11-24T20:55:30.320+05:30  INFO 71110 --- [case-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-11-24T20:55:30.606+05:30  WARN 71110 --- [case-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-11-24T20:55:30.805+05:30  INFO 71110 --- [case-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-11-24T20:55:31.040+05:30  INFO 71110 --- [case-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8082 (http) with context path '/'
-2026-11-24T20:55:31.046+05:30  INFO 71110 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : Started CaseServiceApplication in 3.872 seconds (process running for 4.08)
-2026-11-24T20:55:31.164+05:30  INFO 71110 --- [case-service] [           main] c.ecops.caseservice.config.DemoSeeder    : [DemoSeeder] Seeded 10 demo FIRs.
-2026-11-24T20:55:31.174+05:30  INFO 71110 --- [case-service] [           main] c.ecops.caseservice.config.DemoSeeder    : [DemoSeeder] Seeded complaints + NCR entries.
-2026-11-24T20:55:31.189+05:30  INFO 71110 --- [case-service] [           main] c.ecops.caseservice.config.DemoSeeder    : [DemoSeeder] Seeded 50 criminal records.
-2026-11-24T20:55:31.196+05:30  INFO 71110 --- [case-service] [           main] c.ecops.caseservice.config.DemoSeeder    : [DemoSeeder] Seeded pending arrest warrants.
+2026-11-24T21:03:42.569+05:30  INFO 75688 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : Starting CaseServiceApplication using Java 21.0.13.1 with PID 75688 (/Users/I578472/Downloads/ecops/case-service/target/classes started by I578472 in /Users/I578472/Downloads/ecops/case-service)
+2026-11-24T21:03:42.571+05:30  INFO 75688 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-11-24T21:03:43.048+05:30  INFO 75688 --- [case-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-24T21:03:43.088+05:30  INFO 75688 --- [case-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 35 ms. Found 13 JPA repository interfaces.
+2026-11-24T21:03:43.407+05:30  INFO 75688 --- [case-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8082 (http)
+2026-11-24T21:03:43.412+05:30  INFO 75688 --- [case-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-24T21:03:43.412+05:30  INFO 75688 --- [case-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-11-24T21:03:43.432+05:30  INFO 75688 --- [case-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-24T21:03:43.432+05:30  INFO 75688 --- [case-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 840 ms
+2026-11-24T21:03:43.609+05:30  INFO 75688 --- [case-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-24T21:03:43.711+05:30  INFO 75688 --- [case-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@c4cceb
+2026-11-24T21:03:43.711+05:30  INFO 75688 --- [case-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-24T21:03:43.728+05:30  INFO 75688 --- [case-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5434/case_db (PostgreSQL 16.13)
+2026-11-24T21:03:43.772+05:30  INFO 75688 --- [case-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.028s)
+2026-11-24T21:03:43.789+05:30  INFO 75688 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 20
+2026-11-24T21:03:43.790+05:30  INFO 75688 --- [case-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-24T21:03:43.832+05:30  INFO 75688 --- [case-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-11-24T21:03:43.857+05:30  INFO 75688 --- [case-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-11-24T21:03:43.872+05:30  INFO 75688 --- [case-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-11-24T21:03:43.983+05:30  INFO 75688 --- [case-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-24T21:03:44.006+05:30  WARN 75688 --- [case-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-11-24T21:03:44.435+05:30  INFO 75688 --- [case-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-24T21:03:44.469+05:30  INFO 75688 --- [case-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-24T21:03:44.732+05:30  INFO 75688 --- [case-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-24T21:03:44.982+05:30  WARN 75688 --- [case-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-24T21:03:45.173+05:30  INFO 75688 --- [case-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-24T21:03:45.555+05:30  INFO 75688 --- [case-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8082 (http) with context path '/'
+2026-11-24T21:03:45.563+05:30  INFO 75688 --- [case-service] [           main] c.e.caseservice.CaseServiceApplication   : Started CaseServiceApplication in 3.174 seconds (process running for 3.331)
+2026-11-24T21:03:45.641+05:30  INFO 75688 --- [case-service] [           main] c.ecops.caseservice.config.DemoSeeder    : [DemoSeeder] FIRs present — skipping.
+2026-11-24T21:04:36.806+05:30  INFO 75688 --- [case-service] [nio-8082-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-24T21:04:36.807+05:30  INFO 75688 --- [case-service] [nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-24T21:04:36.814+05:30  INFO 75688 --- [case-service] [nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 7 ms
