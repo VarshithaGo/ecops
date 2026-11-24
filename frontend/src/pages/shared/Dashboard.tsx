@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
 import { ROLES } from '../../utils/roles'
+import { useDashboardStats } from '../../hooks/useFIRData'
+import { DashboardStats, DashboardActionItem } from '../../types/case.types'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
+import { A, FONT } from '../../theme'
 
 function greetingName(roles: string[]) {
   if (roles.includes(ROLES.ADMIN))      return 'Admin'
@@ -143,6 +146,93 @@ function InstructionCard({ section }: { section: Section }) {
   )
 }
 
+type Tile = { label: string; value: number; to?: string; alert?: boolean }
+
+function buildTiles(roles: string[], stats: DashboardStats): Tile[] {
+  if (roles.includes(ROLES.MAGISTRATE) && !roles.includes(ROLES.OFFICER) && !roles.includes(ROLES.ADMIN)) {
+    return [
+      { label: 'Warrants Pending', value: stats.warrantsPending, to: '/magistrate/warrants', alert: stats.warrantsPending > 0 },
+      { label: 'NCR Referrals Open', value: stats.ncrOpen, to: '/magistrate/ncr' },
+      { label: 'FIRs Under Investigation', value: stats.firsUnderInvestigation },
+    ]
+  }
+  // Officer / Admin
+  return [
+    { label: 'Complaints Pending', value: stats.complaintsPending, to: '/officer/complaints', alert: stats.complaintsPending > 0 },
+    { label: 'FIRs Under Investigation', value: stats.firsUnderInvestigation, to: '/officer/firs' },
+    { label: 'Warrants Pending', value: stats.warrantsPending },
+    { label: 'NCRs Open', value: stats.ncrOpen, to: '/officer/ncr' },
+    { label: 'Charge Sheets Filed', value: stats.chargeSheetsFiled },
+  ]
+}
+
+function StatTile({ tile }: { tile: Tile }) {
+  const accent = tile.alert ? '#B45309' : A.accent
+  const body = (
+    <div style={{
+      background: '#fff',
+      border: `1px solid ${C.bark}`,
+      borderTop: `3px solid ${accent}`,
+      borderRadius: 10,
+      padding: '18px 20px',
+      minWidth: 150, flex: 1,
+      boxShadow: '0 1px 2px rgba(16,32,44,0.04), 0 1px 3px rgba(16,32,44,0.06)',
+    }}>
+      <div style={{ fontFamily: FONT.ui, fontSize: 36, fontWeight: 800, lineHeight: 1, color: accent }}>
+        {tile.value}
+      </div>
+      <div style={{ fontFamily: FONT.ui, fontSize: 13, fontWeight: 500, color: C.charcoal, marginTop: 8 }}>
+        {tile.label}
+      </div>
+    </div>
+  )
+  return tile.to ? <Link to={tile.to} style={{ textDecoration: 'none', flex: 1, display: 'flex' }}>{body}</Link> : body
+}
+
+function ActionRequiredPanel({ items }: { items: DashboardActionItem[] }) {
+  if (items.length === 0) return null
+  return (
+    <div style={{ border: '2px solid #fb923c66', background: '#fb923c10', borderRadius: 4, padding: '20px 24px', marginBottom: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 14, letterSpacing: '0.1em', color: '#fb923c' }}>
+          ACTION REQUIRED
+        </span>
+        <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 12, color: C.charcoal }}>
+          BNSS §193 — charge-sheet deadline (90 days)
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map((it) => {
+          const color = it.state === 'OVERDUE' ? '#f87171' : '#fb923c'
+          const text = it.state === 'OVERDUE'
+            ? `${Math.abs(it.daysRemaining)} day(s) overdue`
+            : `${it.daysRemaining} day(s) remaining`
+          return (
+            <Link key={it.firId} to={`/officer/firs/${it.firId}`} style={{ textDecoration: 'none' }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+                padding: '10px 14px', border: `1px solid ${C.bark}`, borderRadius: 3, background: `${C.kite}88`,
+              }}>
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, color: C.ashes }}>
+                  {it.firNumber} <span style={{ color: C.charcoal, fontWeight: 400 }}>· {it.stationCode}</span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 12, color: C.charcoal }}>
+                    Day {it.daysElapsed} of 90
+                  </span>
+                  <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 10, letterSpacing: '0.08em', color, border: `1px solid ${color}`, borderRadius: 3, padding: '3px 9px', whiteSpace: 'nowrap' }}>
+                    {text}
+                  </span>
+                </span>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function Dashboard() {
   const { roles, username } = useAuth()
 
@@ -150,9 +240,11 @@ export function Dashboard() {
                  : roles.includes(ROLES.OFFICER)    ? officerSections()
                  : roles.includes(ROLES.MAGISTRATE) ? magistrateSections()
                  : citizenSections()
-
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  const isStaff = roles.includes(ROLES.ADMIN) || roles.includes(ROLES.OFFICER) || roles.includes(ROLES.MAGISTRATE)
+  const { data: stats } = useDashboardStats()
 
   return (
     <div style={{ padding: '36px 40px', maxWidth: 960, margin: '0 auto' }}>
@@ -190,6 +282,18 @@ export function Dashboard() {
           {dateStr}
         </div>
       </div>
+
+      {/* Live metrics (staff only) */}
+      {isStaff && stats && (
+        <>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 24 }}>
+            {buildTiles(roles, stats).map((t) => <StatTile key={t.label} tile={t} />)}
+          </div>
+          {(roles.includes(ROLES.OFFICER) || roles.includes(ROLES.ADMIN)) && (
+            <ActionRequiredPanel items={stats.actionRequired} />
+          )}
+        </>
+      )}
 
       {/* Section heading */}
       <div style={{

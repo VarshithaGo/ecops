@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { stationsApi } from '../../api/stationsApi'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const inputStyle: React.CSSProperties = {
   padding: '10px 14px', background: C.bark, color: C.ashes,

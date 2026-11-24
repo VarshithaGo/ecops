@@ -3,7 +3,7 @@ import { caseApi } from '../../api/caseApi'
 import { ArrestWarrant, Fir } from '../../types/case.types'
 import { useState } from 'react'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const lbl: React.CSSProperties = {
   fontFamily: "'Space Grotesk', system-ui, sans-serif",

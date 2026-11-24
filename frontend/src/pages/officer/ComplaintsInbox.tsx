@@ -6,19 +6,15 @@ import { useAuth } from '../../auth/AuthProvider'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C, A, FONT } from '../../theme'
 
 const th: React.CSSProperties = {
-  padding: '10px 14px',
-  fontFamily: 'Anton, Impact, sans-serif',
-  fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: C.charcoal, textAlign: 'left', background: C.bark,
-  borderBottom: `2px solid ${C.charcoal}`,
+  padding: '11px 14px', fontFamily: FONT.ui, fontSize: 12, fontWeight: 700,
+  color: C.charcoal, textAlign: 'left', background: '#F3F6FA',
+  borderBottom: `1px solid ${C.bark}`,
 }
 const td: React.CSSProperties = {
-  padding: '10px 14px',
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: 13, color: C.ashes,
+  padding: '11px 14px', fontFamily: FONT.ui, fontSize: 14, color: C.ashes,
   borderBottom: `1px solid ${C.bark}`,
 }
 
@@ -46,15 +42,15 @@ export function ComplaintsInbox() {
   )
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1100 }}>
-      <h2 style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 26, letterSpacing: '0.06em', color: C.ashes, margin: 0, marginBottom: 6 }}>
+    <div style={{ padding: '32px 24px', maxWidth: 1100, margin: '0 auto' }}>
+      <h2 style={{ fontFamily: FONT.ui, fontSize: 24, fontWeight: 700, letterSpacing: '-0.01em', color: C.ashes, margin: 0, marginBottom: 6 }}>
         Complaints Inbox
       </h2>
-      <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13, marginBottom: 24 }}>
+      <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14, marginBottom: 24 }}>
         Incoming complaints awaiting categorization as FIR (cognizable) or NCR (non-cognizable).
       </p>
 
-      <div style={{ border: `2px solid ${C.charcoal}`, borderRadius: 4, overflow: 'hidden', backdropFilter: 'blur(8px)', background: `${C.kite}99` }}>
+      <div style={{ border: `1px solid ${C.bark}`, borderRadius: 10, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(16,32,44,0.06)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -79,13 +75,12 @@ export function ComplaintsInbox() {
                     <button
                       onClick={() => { setSelected(c.id); setOffenseType('COGNIZABLE'); setIsZeroFir(false) }}
                       style={{
-                        padding: '4px 14px',
-                        fontFamily: 'Anton, Impact, sans-serif',
-                        fontSize: 11, letterSpacing: '0.1em',
-                        background: 'transparent', color: C.ashes,
-                        border: `1.5px solid ${C.charcoal}`, borderRadius: 3, cursor: 'pointer',
+                        padding: '6px 14px', fontFamily: FONT.ui,
+                        fontSize: 13, fontWeight: 600,
+                        background: A.accent, color: '#fff',
+                        border: 'none', borderRadius: 6, cursor: 'pointer',
                       }}>
-                      CATEGORIZE
+                      Categorize
                     </button>
                   )}
                 </td>
@@ -107,9 +102,9 @@ export function ComplaintsInbox() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
         }}>
           <div style={{
-            background: C.kite, border: `2px solid ${C.charcoal}`,
-            borderRadius: 4, padding: 32, minWidth: 460, maxWidth: 540,
-            boxShadow: `0 24px 64px ${C.angst}`,
+            background: '#fff', border: `1px solid ${C.bark}`,
+            borderRadius: 12, padding: 32, minWidth: 460, maxWidth: 540,
+            boxShadow: '0 24px 60px rgba(16,32,44,0.30)',
           }}>
             <h3 style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 20, letterSpacing: '0.06em', color: C.ashes, margin: '0 0 8px' }}>
               Categorize Offense
@@ -166,21 +161,19 @@ export function ComplaintsInbox() {
                 onClick={() => categorize.mutate({ id: selected, offenseType, isZeroFir })}
                 disabled={categorize.isPending}
                 style={{
-                  padding: '9px 24px',
-                  fontFamily: 'Anton, Impact, sans-serif', fontSize: 13, letterSpacing: '0.12em',
-                  background: 'transparent', color: C.ashes,
-                  border: `2px solid ${C.charcoal}`, borderRadius: 3, cursor: 'pointer',
+                  padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600,
+                  background: categorize.isPending ? '#9DB2CC' : A.accent, color: '#fff',
+                  border: 'none', borderRadius: 8, cursor: categorize.isPending ? 'not-allowed' : 'pointer',
                 }}>
-                {categorize.isPending ? 'PROCESSING…' : 'CONFIRM'}
+                {categorize.isPending ? 'Processing…' : 'Confirm'}
               </button>
               <button onClick={() => setSelected(null)}
                 style={{
-                  padding: '9px 24px',
-                  fontFamily: 'Anton, Impact, sans-serif', fontSize: 13, letterSpacing: '0.12em',
-                  background: 'transparent', color: C.charcoal,
-                  border: `2px solid ${C.bark}`, borderRadius: 3, cursor: 'pointer',
+                  padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600,
+                  background: '#fff', color: C.ashes,
+                  border: `1px solid ${C.charcoal}66`, borderRadius: 8, cursor: 'pointer',
                 }}>
-                CANCEL
+                Cancel
               </button>
             </div>
           </div>

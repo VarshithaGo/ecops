@@ -2,8 +2,13 @@ package com.ecops.authadmin.controller;
 
 import com.ecops.authadmin.dto.AssignmentRequest;
 import com.ecops.authadmin.dto.AssignmentResponse;
+import com.ecops.authadmin.dto.RegisterOfficerResponse;
 import com.ecops.authadmin.service.OfficerAssignmentService;
+import com.ecops.authadmin.service.OfficerRegistrationService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +23,24 @@ import java.util.UUID;
 public class OfficerAssignmentController {
 
     private final OfficerAssignmentService assignmentService;
+    private final OfficerRegistrationService registrationService;
+
+    public record RegisterOfficerRequest(
+        @NotBlank String firstName,
+        String lastName,
+        @Size(max = 100) String rank,
+        @NotBlank @Size(max = 50) String badgeNumber,
+        @NotNull UUID stationId
+    ) {}
+
+    /** Create the officer's Keycloak login AND assign them to a station in one step. */
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public RegisterOfficerResponse register(@Valid @RequestBody RegisterOfficerRequest req) {
+        return registrationService.registerAndAssign(
+                req.firstName(), req.lastName(), req.rank(), req.badgeNumber(), req.stationId());
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

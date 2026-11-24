@@ -1,5 +1,6 @@
 import { useAuth } from './AuthProvider'
 import { ReactNode } from 'react'
+import { Navigate } from 'react-router-dom'
 
 interface Props {
   children: ReactNode
@@ -13,8 +14,10 @@ export function ProtectedRoute({ children, roles }: Props) {
 
   if (!authenticated) return null
 
+  // If the user's role can't access this route (e.g. landed here after
+  // re-login), send them to their home dashboard rather than a dead end.
   if (roles.length > 0 && !roles.some((r) => userRoles.includes(r))) {
-    return <div style={{ padding: 32 }}>Access denied: insufficient role.</div>
+    return <Navigate to="/" replace />
   }
 
   return <>{children}</>

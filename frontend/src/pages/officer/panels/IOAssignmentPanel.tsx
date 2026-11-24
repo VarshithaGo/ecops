@@ -10,7 +10,7 @@ import { caseApi } from '../../../api/caseApi'
 import { stationsApi } from '../../../api/stationsApi'
 import { fmtDateTime } from '../../../utils/date'
 
-const C = { angst: '#0A0A0A', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE', kite: '#371E1E' }
+import { C } from '../../../theme'
 
 interface Props {
   firId: string

@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   useFIR, useIoAssignments, useMahajar, usePropertySeizures,
-  useFIRWarrants, useFIRCriminals, useChargeSheet, useFinalReport,
+  useFIRWarrants, useFIRCriminals, useChargeSheet, useFinalReport, useFIRAudit,
 } from '../../hooks/useFIRData'
 import { StatusBadge } from '../../components/StatusBadge'
 import { DetailRow } from '../../components/DetailRow'
 import { OfficerChip } from '../../components/OfficerChip'
+import { CaseTimeline } from '../../components/CaseTimeline'
 import { fmtDateTime } from '../../utils/date'
 import { caseApi } from '../../api/caseApi'
 import { IOAssignmentPanel } from './panels/IOAssignmentPanel'
@@ -17,7 +18,7 @@ import { WarrantPanel } from './panels/WarrantPanel'
 import { CriminalPanel } from './panels/CriminalPanel'
 import { FinalReportPanel } from './panels/FinalReportPanel'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const inputStyle: React.CSSProperties = {
   padding: '10px 14px', background: C.bark, color: C.ashes,
@@ -39,6 +40,7 @@ export default function FIRDetail() {
   const { data: criminals = [] } = useFIRCriminals(firId)
   const { data: chargeSheet = null } = useChargeSheet(firId)
   const { data: finalReport = null } = useFinalReport(firId)
+  const { data: auditEvents = [] } = useFIRAudit(firId)
 
   const [transferCode, setTransferCode] = useState('')
   const [transferNotes, setTransferNotes] = useState('')
@@ -57,6 +59,14 @@ export default function FIRDetail() {
   if (firLoading) return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal }}>Loading FIR...</div>
   if (firError || !fir) return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#f87171' }}>Failed to load FIR.</div>
 
+  // BNSS §193 charge-sheet deadline (computed client-side; mirrors case-service DeadlineService)
+  const CLOSED = ['CHARGE_SHEET_FILED', 'FINAL_REPORT_FILED', 'COURT_DISPOSED', 'CLOSED']
+  const daysElapsed = Math.floor((Date.now() - new Date(fir.registeredAt).getTime()) / 86400000)
+  const daysRemaining = 90 - daysElapsed
+  const deadlineOpen = !CLOSED.includes(fir.status)
+  const deadlineState = !deadlineOpen ? 'CLOSED' : daysRemaining < 0 ? 'OVERDUE' : daysRemaining <= 15 ? 'DUE_SOON' : 'ON_TRACK'
+  const deadlineColor = deadlineState === 'OVERDUE' ? '#f87171' : deadlineState === 'DUE_SOON' ? '#fb923c' : '#4ade80'
+
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '24px 16px' }}>
       <div style={{ marginBottom: 16 }}>
@@ -64,6 +74,21 @@ export default function FIRDetail() {
           ← Back to FIR List
         </Link>
       </div>
+
+      {/* BNSS §193 charge-sheet deadline banner */}
+      {deadlineOpen && (deadlineState === 'OVERDUE' || deadlineState === 'DUE_SOON') && (
+        <div style={{ border: `2px solid ${deadlineColor}`, background: `${deadlineColor}14`, borderRadius: 4, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.1em', color: deadlineColor, border: `1.5px solid ${deadlineColor}`, borderRadius: 3, padding: '3px 9px', whiteSpace: 'nowrap' }}>
+            {deadlineState === 'OVERDUE' ? 'CHARGE SHEET OVERDUE' : 'DEADLINE APPROACHING'}
+          </span>
+          <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, color: C.ashes, lineHeight: 1.5 }}>
+            BNSS §193 — investigation is on day <strong>{daysElapsed}</strong> of the 90-day charge-sheet limit.{' '}
+            {deadlineState === 'OVERDUE'
+              ? <span style={{ color: deadlineColor, fontWeight: 600 }}>{Math.abs(daysRemaining)} day(s) past the statutory deadline.</span>
+              : <span style={{ color: deadlineColor, fontWeight: 600 }}>{daysRemaining} day(s) remaining.</span>}
+          </span>
+        </div>
+      )}
 
       {/* FIR Summary Card */}
       <div style={{ background: `${C.kite}cc`, border: `2px solid ${C.charcoal}`, borderRadius: 4, padding: '24px 28px', marginBottom: 20, backdropFilter: 'blur(8px)' }}>
@@ -164,6 +189,7 @@ export default function FIRDetail() {
       <WarrantPanel firId={firId} warrants={warrants} />
       <CriminalPanel firId={firId} criminals={criminals} />
       <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} />
+      <CaseTimeline events={auditEvents} />
       <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>
   )

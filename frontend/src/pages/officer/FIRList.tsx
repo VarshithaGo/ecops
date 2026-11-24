@@ -5,19 +5,15 @@ import { Fir } from '../../types/case.types'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C, A, FONT } from '../../theme'
 
 const th: React.CSSProperties = {
-  padding: '10px 14px',
-  fontFamily: 'Anton, Impact, sans-serif',
-  fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: C.charcoal, textAlign: 'left', background: C.bark,
-  borderBottom: `2px solid ${C.charcoal}`,
+  padding: '11px 14px', fontFamily: FONT.ui, fontSize: 12, fontWeight: 700,
+  color: C.charcoal, textAlign: 'left', background: '#F3F6FA',
+  borderBottom: `1px solid ${C.bark}`,
 }
 const td: React.CSSProperties = {
-  padding: '10px 14px',
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: 13, color: C.ashes,
+  padding: '11px 14px', fontFamily: FONT.ui, fontSize: 14, color: C.ashes,
   borderBottom: `1px solid ${C.bark}`,
 }
 
@@ -30,6 +26,23 @@ function needsCourtWarning(fir: Fir): boolean {
   return hrs >= 24
 }
 
+// BNSS §193 — 90-day charge-sheet deadline (mirrors case-service DeadlineService)
+function DeadlineBadge({ fir }: { fir: Fir }) {
+  if (CLOSED_STATUSES.includes(fir.status)) {
+    return <span style={{ color: C.charcoal, fontSize: 12 }}>—</span>
+  }
+  const daysElapsed = Math.floor((Date.now() - new Date(fir.registeredAt).getTime()) / 86400000)
+  const remaining = 90 - daysElapsed
+  const state = remaining < 0 ? 'OVERDUE' : remaining <= 15 ? 'DUE_SOON' : 'ON_TRACK'
+  const color = state === 'OVERDUE' ? '#f87171' : state === 'DUE_SOON' ? '#fb923c' : '#4ade80'
+  const label = state === 'OVERDUE' ? `${Math.abs(remaining)}d OVERDUE` : `${remaining}d LEFT`
+  return (
+    <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 10, letterSpacing: '0.08em', color, border: `1px solid ${color}`, borderRadius: 3, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+      {label}
+    </span>
+  )
+}
+
 export function FIRList() {
   const { data, isLoading, error } = useQuery<Fir[]>({ queryKey: ['firs'], queryFn: caseApi.listFirs })
 
@@ -37,15 +50,15 @@ export function FIRList() {
   if (error)     return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#f87171' }}>Error loading FIRs.</div>
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200 }}>
-      <h2 style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 26, letterSpacing: '0.06em', color: C.ashes, margin: 0, marginBottom: 6 }}>
+    <div style={{ padding: '32px 24px', maxWidth: 1160, margin: '0 auto' }}>
+      <h2 style={{ fontFamily: FONT.ui, fontSize: 24, fontWeight: 700, letterSpacing: '-0.01em', color: C.ashes, margin: 0, marginBottom: 6 }}>
         FIR Register
       </h2>
-      <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13, marginBottom: 24 }}>
+      <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14, marginBottom: 24 }}>
         First Information Reports — cognizable offences registered at this station.
       </p>
 
-      <div style={{ border: `2px solid ${C.charcoal}`, borderRadius: 4, overflow: 'hidden', backdropFilter: 'blur(8px)', background: `${C.kite}99` }}>
+      <div style={{ border: `1px solid ${C.bark}`, borderRadius: 10, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(16,32,44,0.06)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -54,6 +67,7 @@ export function FIRList() {
               <th style={th}>Sections</th>
               <th style={th}>Accused</th>
               <th style={th}>Status</th>
+              <th style={th}>Deadline</th>
               <th style={th}>Registered</th>
               <th style={th}>Court</th>
               <th style={th}>Action</th>
@@ -69,6 +83,7 @@ export function FIRList() {
                 <td style={{ ...td, color: C.charcoal }}>{fir.ipcSections}</td>
                 <td style={td}>{fir.accusedName ?? '—'}</td>
                 <td style={td}><StatusBadge status={fir.status} size="sm" /></td>
+                <td style={td}><DeadlineBadge fir={fir} /></td>
                 <td style={{ ...td, color: C.charcoal }}>{fmtDate(fir.registeredAt)}</td>
                 <td style={td}>
                   {fir.remandCourtName ? (
@@ -83,19 +98,18 @@ export function FIRList() {
                 </td>
                 <td style={td}>
                   <Link to={`/officer/firs/${fir.id}`} style={{
-                    fontFamily: 'Anton, Impact, sans-serif',
-                    fontSize: 11, letterSpacing: '0.1em',
-                    color: C.ashes, textDecoration: 'none',
-                    padding: '4px 12px',
-                    border: `1.5px solid ${C.charcoal}`, borderRadius: 3,
+                    fontFamily: FONT.ui, fontSize: 13, fontWeight: 600,
+                    color: '#fff', textDecoration: 'none',
+                    padding: '6px 14px',
+                    background: A.accent, borderRadius: 6,
                   }}>
-                    VIEW
+                    View
                   </Link>
                 </td>
               </tr>
             ))}
             {data?.length === 0 && (
-              <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No FIRs on record.</td></tr>
+              <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No FIRs on record.</td></tr>
             )}
           </tbody>
         </table>

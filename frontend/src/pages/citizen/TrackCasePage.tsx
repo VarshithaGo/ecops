@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { caseApi } from '../../api/caseApi'
 import { Complaint, Fir } from '../../types/case.types'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const STATUS_STEP: Record<string, number> = {
   FILED: 0, CATEGORIZED: 1, CONVERTED_TO_FIR: 2, LOGGED_IN_NCR: 2, CLOSED: 3, REJECTED: 3,

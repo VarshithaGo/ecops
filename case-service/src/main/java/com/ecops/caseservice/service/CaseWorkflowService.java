@@ -31,6 +31,11 @@ public class CaseWorkflowService {
     private final FinalReportRepository finalReportRepo;
     private final CourtDisposalRepository disposalRepo;
     private final InternalServiceClient internalClient;
+    private final AuditService auditService;
+
+    private static final String ROLE_OFFICER = "POLICE_OFFICER";
+    private static final String ROLE_MAGISTRATE = "MAGISTRATE";
+    private static final String ROLE_CITIZEN = "CITIZEN";
 
     // ---- Complaint ----
 
@@ -53,7 +58,11 @@ public class CaseWorkflowService {
                 .incidentLocation(incidentLocation)
                 .status("FILED")
                 .build();
-        return complaintRepo.save(c);
+        Complaint saved = complaintRepo.save(c);
+        auditService.record("COMPLAINT", saved.getId(), null, officerId, ROLE_OFFICER,
+                "COMPLAINT_FILED_WALKIN", null, "FILED",
+                "Walk-in complaint " + number + " registered for " + walkInName);
+        return saved;
     }
 
     @Transactional
@@ -76,7 +85,11 @@ public class CaseWorkflowService {
                 .incidentLocation(incidentLocation)
                 .status("FILED")
                 .build();
-        return complaintRepo.save(c);
+        Complaint saved = complaintRepo.save(c);
+        auditService.record("COMPLAINT", saved.getId(), null, citizenKeycloakId, ROLE_CITIZEN,
+                "COMPLAINT_FILED", null, "FILED",
+                "Online complaint " + number + " filed by citizen");
+        return saved;
     }
 
     @Transactional
@@ -124,6 +137,11 @@ public class CaseWorkflowService {
             c.setStatus("CONVERTED_TO_FIR");
             complaintRepo.save(c);
 
+            auditService.record("FIR", fir.getId(), fir.getId(), officerUserId, ROLE_OFFICER,
+                    isZeroFir ? "ZERO_FIR_REGISTERED" : "FIR_REGISTERED", "FILED", "REGISTERED",
+                    firNumber + " registered from complaint " + c.getComplaintNumber()
+                            + " (cognizable offence)");
+
             String message = isZeroFir
                     ? "Zero FIR registered (BNSS 173(1)). Transfer to the competent station is required."
                     : "FIR registered. Complainant is entitled to a free copy of this FIR.";
@@ -144,6 +162,11 @@ public class CaseWorkflowService {
             c.setStatus("LOGGED_IN_NCR");
             complaintRepo.save(c);
 
+            auditService.record("NCR", ncr.getId(), null, officerUserId, ROLE_OFFICER,
+                    "NCR_LOGGED", "FILED", "OPEN",
+                    ncrNumber + " logged from complaint " + c.getComplaintNumber()
+                            + " (non-cognizable); Form 76-A issued");
+
             return new CategorizeResult("NON_COGNIZABLE", null,
                     "Form 76-A has been recorded. Complainant should approach the Magistrate.", ncrNumber, false);
         }
@@ -154,6 +177,7 @@ public class CaseWorkflowService {
     @Transactional
     public IoAssignment assignIO(UUID firId, String ioOfficerId, String assignedByOfficerId) {
         Fir fir = findFirOrThrow(firId);
+        String prevStatus = fir.getStatus();
         IoAssignment io = IoAssignment.builder()
                 .fir(fir)
                 .ioOfficerId(ioOfficerId)
@@ -164,6 +188,9 @@ public class CaseWorkflowService {
 
         fir.setStatus("UNDER_INVESTIGATION");
         firRepo.save(fir);
+        auditService.record("FIR", fir.getId(), fir.getId(), assignedByOfficerId, ROLE_OFFICER,
+                "IO_ASSIGNED", prevStatus, "UNDER_INVESTIGATION",
+                "Investigating Officer assigned");
         return io;
     }
 
@@ -182,7 +209,11 @@ public class CaseWorkflowService {
                 .witnessNames(witnessNames)
                 .observations(observations)
                 .build();
-        return mahajarRepo.save(m);
+        MahajarReport saved = mahajarRepo.save(m);
+        auditService.record("FIR", fir.getId(), fir.getId(), ioOfficerId, ROLE_OFFICER,
+                "MAHAJAR_RECORDED", null, null,
+                "Mahajar (spot inspection) recorded at " + locationDesc);
+        return saved;
     }
 
     // ---- Property ----
@@ -200,13 +231,17 @@ public class CaseWorkflowService {
                 .seizureDate(seizureDate)
                 .storageLocation(storageLocation)
                 .build();
-        return propertyRepo.save(ps);
+        PropertySeizure saved = propertyRepo.save(ps);
+        auditService.record("FIR", fir.getId(), fir.getId(), officerId, ROLE_OFFICER,
+                "PROPERTY_SEIZED", null, null,
+                "Seized: " + quantity + " × " + description);
+        return saved;
     }
 
     // ---- Criminal Record ----
 
     @Transactional
-    public CriminalRecord addCriminalRecord(UUID firId, String fullName, LocalDate dob,
+    public CriminalRecord addCriminalRecord(UUID firId, String officerId, String fullName, LocalDate dob,
                                              Integer ageAtCrime, String gender,
                                              String state, String district, String area,
                                              String aadhaarRef, String role) {
@@ -217,7 +252,11 @@ public class CaseWorkflowService {
                 .aadhaarRef(aadhaarRef)
                 .role(role != null ? role : "SUSPECT")
                 .build();
-        return criminalRepo.save(cr);
+        CriminalRecord saved = criminalRepo.save(cr);
+        auditService.record("FIR", fir.getId(), fir.getId(), officerId, ROLE_OFFICER,
+                "CRIMINAL_RECORD_ADDED", null, null,
+                (role != null ? role : "SUSPECT") + " added: " + fullName);
+        return saved;
     }
 
     // ---- Warrant ----
@@ -235,7 +274,11 @@ public class CaseWorkflowService {
                 .reason(reason)
                 .status("PENDING")
                 .build();
-        return warrantRepo.save(w);
+        ArrestWarrant saved = warrantRepo.save(w);
+        auditService.record("WARRANT", saved.getId(), fir.getId(), officerId, ROLE_OFFICER,
+                "WARRANT_REQUESTED", null, "PENDING",
+                "Arrest warrant requested for " + accusedName);
+        return saved;
     }
 
     @Transactional
@@ -253,7 +296,13 @@ public class CaseWorkflowService {
         w.setMagistrateId(magistrateId);
         w.setDecisionNotes(decisionNotes);
         w.setDecidedAt(OffsetDateTime.now());
-        return warrantRepo.save(w);
+        ArrestWarrant saved = warrantRepo.save(w);
+        auditService.record("WARRANT", saved.getId(), w.getFir().getId(), magistrateId, ROLE_MAGISTRATE,
+                "ISSUED".equals(decision) ? "WARRANT_ISSUED" : "WARRANT_REJECTED",
+                "PENDING", decision,
+                "Warrant for " + w.getAccusedName() + " " + decision.toLowerCase()
+                        + (decisionNotes != null ? " — " + decisionNotes : ""));
+        return saved;
     }
 
     @Transactional
@@ -264,7 +313,11 @@ public class CaseWorkflowService {
             throw new IllegalStateException("Only ISSUED warrants can be executed");
         }
         w.setStatus("EXECUTED");
-        return warrantRepo.save(w);
+        ArrestWarrant saved = warrantRepo.save(w);
+        auditService.record("WARRANT", saved.getId(), w.getFir().getId(), officerId, ROLE_OFFICER,
+                "WARRANT_EXECUTED", "ISSUED", "EXECUTED",
+                "Warrant executed for " + w.getAccusedName());
+        return saved;
     }
 
     @Transactional
@@ -274,9 +327,14 @@ public class CaseWorkflowService {
         if ("EXECUTED".equals(w.getStatus()) || "CANCELLED".equals(w.getStatus())) {
             throw new IllegalStateException("Warrant cannot be cancelled in status: " + w.getStatus());
         }
+        String prevStatus = w.getStatus();
         w.setStatus("CANCELLED");
         w.setDecisionNotes(reason);
-        return warrantRepo.save(w);
+        ArrestWarrant saved = warrantRepo.save(w);
+        auditService.record("WARRANT", saved.getId(), w.getFir().getId(), null, ROLE_OFFICER,
+                "WARRANT_CANCELLED", prevStatus, "CANCELLED",
+                "Warrant cancelled" + (reason != null ? " — " + reason : ""));
+        return saved;
     }
 
     @Transactional
@@ -288,7 +346,12 @@ public class CaseWorkflowService {
         fir.setTransferredToStationCode(targetStationCode);
         fir.setTransferredAt(OffsetDateTime.now());
         fir.setTransferNotes(notes);
-        return firRepo.save(fir);
+        Fir saved = firRepo.save(fir);
+        auditService.record("FIR", fir.getId(), fir.getId(), null, ROLE_OFFICER,
+                "ZERO_FIR_TRANSFERRED", null, null,
+                "Zero FIR transferred to station " + targetStationCode
+                        + (notes != null ? " — " + notes : ""));
+        return saved;
     }
 
     @Transactional
@@ -302,7 +365,12 @@ public class CaseWorkflowService {
         ncr.setMagistrateOrderNotes(notes);
         ncr.setMagistrateOrderedAt(OffsetDateTime.now());
         ncr.setStatus("MAGISTRATE_ORDERED");
-        return ncrRepo.save(ncr);
+        NcrEntry saved = ncrRepo.save(ncr);
+        auditService.record("NCR", saved.getId(), null, magistrateId, ROLE_MAGISTRATE,
+                "NCR_MAGISTRATE_ORDERED", "REFERRED_TO_MAGISTRATE", "MAGISTRATE_ORDERED",
+                "Magistrate ordered investigation (BNSS §174)"
+                        + (notes != null ? " — " + notes : ""));
+        return saved;
     }
 
     // ---- Charge Sheet ----
@@ -326,8 +394,12 @@ public class CaseWorkflowService {
                 .sectionsInvoked(sectionsInvoked).build();
         chargeSheetRepo.save(cs);
 
+        String prevStatus = fir.getStatus();
         fir.setStatus("CHARGE_SHEET_FILED");
         firRepo.save(fir);
+        auditService.record("FIR", fir.getId(), fir.getId(), officerId, ROLE_OFFICER,
+                "CHARGE_SHEET_FILED", prevStatus, "CHARGE_SHEET_FILED",
+                "Charge sheet filed at " + courtName + " (sections: " + sectionsInvoked + ")");
         return cs;
     }
 
@@ -353,8 +425,12 @@ public class CaseWorkflowService {
                 .remarks(remarks).build();
         finalReportRepo.save(fr);
 
+        String prevStatus = fir.getStatus();
         fir.setStatus("FINAL_REPORT_FILED");
         firRepo.save(fir);
+        auditService.record("FIR", fir.getId(), fir.getId(), officerId, ROLE_OFFICER,
+                "FINAL_REPORT_FILED", prevStatus, "FINAL_REPORT_FILED",
+                "Final Report '" + reportType + "' filed at " + courtName);
         return fr;
     }
 
@@ -371,7 +447,11 @@ public class CaseWorkflowService {
                 .fir(fir).chargeSheet(cs).courtName(courtName)
                 .judgeName(judgeName).judgmentDate(judgmentDate)
                 .outcome(outcome).remarks(remarks).build();
-        return disposalRepo.save(cd);
+        CourtDisposal saved = disposalRepo.save(cd);
+        auditService.record("COURT", saved.getId(), fir.getId(), null, ROLE_MAGISTRATE,
+                "COURT_DISPOSAL_RECORDED", null, null,
+                "Court disposal at " + courtName + ": " + outcome);
+        return saved;
     }
 
     // ---- Helpers ----

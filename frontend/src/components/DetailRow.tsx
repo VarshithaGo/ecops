@@ -1,4 +1,4 @@
-const C = { charcoal: '#726E68', ashes: '#B7B4AE', bark: '#33312F' }
+import { C } from '../theme'
 
 interface DetailRowProps {
   label: string

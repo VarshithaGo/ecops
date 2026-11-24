@@ -30,6 +30,8 @@ public class FirController {
     private final FinalReportRepository finalReportRepo;
     private final CourtDisposalRepository disposalRepo;
     private final CaseWorkflowService workflowService;
+    private final com.ecops.caseservice.service.AuditService auditService;
+    private final com.ecops.caseservice.service.DeadlineService deadlineService;
 
     // ---- Request records ----
 
@@ -105,6 +107,24 @@ public class FirController {
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("FIR not found: " + id));
     }
 
+    // ---- Audit trail (case timeline) ----
+
+    @GetMapping("/{id}/audit")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    public List<com.ecops.caseservice.entity.AuditEvent> auditTrail(@PathVariable UUID id) {
+        return auditService.timelineForFir(id);
+    }
+
+    // ---- BNSS §193 charge-sheet deadline ----
+
+    @GetMapping("/{id}/deadline")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    public com.ecops.caseservice.service.DeadlineService.Deadline deadline(@PathVariable UUID id) {
+        Fir fir = firRepo.findById(id)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("FIR not found: " + id));
+        return deadlineService.evaluate(fir);
+    }
+
     // ---- Investigation sub-resources ----
 
     @PostMapping("/{id}/io-assignment")
@@ -160,7 +180,7 @@ public class FirController {
     public CriminalRecord addCriminal(@PathVariable UUID id,
                                       @Valid @RequestBody CriminalRequest req,
                                       @RequestHeader("X-User-Id") String officerId) {
-        return workflowService.addCriminalRecord(id, req.fullName(), req.dob(), req.ageAtCrime(),
+        return workflowService.addCriminalRecord(id, officerId, req.fullName(), req.dob(), req.ageAtCrime(),
                 req.gender(), req.state(), req.district(), req.area(), req.aadhaarRef(), req.role());
     }
 
@@ -236,11 +256,16 @@ public class FirController {
     @PutMapping("/{id}/court-production")
     @PreAuthorize("hasRole('POLICE_OFFICER')")
     public Fir recordCourtProduction(@PathVariable UUID id,
-                                     @Valid @RequestBody CourtProductionRequest req) {
+                                     @Valid @RequestBody CourtProductionRequest req,
+                                     @RequestHeader("X-User-Id") String officerId) {
         Fir fir = firRepo.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("FIR not found: " + id));
         fir.setRemandCourtName(req.courtName());
         fir.setProducedAtCourtAt(java.time.OffsetDateTime.now());
-        return firRepo.save(fir);
+        Fir saved = firRepo.save(fir);
+        auditService.record("FIR", fir.getId(), fir.getId(), officerId, "POLICE_OFFICER",
+                "COURT_PRODUCTION_RECORDED", null, null,
+                "Accused produced before " + req.courtName() + " (BNSS §187, 24-hour rule)");
+        return saved;
     }
 }

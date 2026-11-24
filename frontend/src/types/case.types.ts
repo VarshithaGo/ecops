@@ -119,3 +119,46 @@ export interface CourtDisposal {
   judgmentDate: string | null
   remarks: string | null
 }
+
+export interface AuditEvent {
+  id: string
+  entityType: string
+  entityId: string
+  firId: string | null
+  actorId: string | null
+  actorRole: string | null
+  action: string
+  fromStatus: string | null
+  toStatus: string | null
+  details: string | null
+  createdAt: string
+}
+
+export type DeadlineState = 'ON_TRACK' | 'DUE_SOON' | 'OVERDUE' | 'CLOSED'
+
+export interface Deadline {
+  daysElapsed: number
+  deadlineDays: number
+  daysRemaining: number
+  state: DeadlineState
+  actionRequired: boolean
+}
+
+export interface DashboardActionItem {
+  firId: string
+  firNumber: string
+  stationCode: string
+  daysElapsed: number
+  daysRemaining: number
+  state: DeadlineState
+}
+
+export interface DashboardStats {
+  complaintsPending: number
+  firsUnderInvestigation: number
+  firsTotal: number
+  ncrOpen: number
+  warrantsPending: number
+  chargeSheetsFiled: number
+  actionRequired: DashboardActionItem[]
+}

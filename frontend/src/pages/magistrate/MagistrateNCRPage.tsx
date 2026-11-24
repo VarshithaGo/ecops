@@ -6,7 +6,7 @@ import { Station } from '../../types/admin.types'
 import { stationsApi } from '../../api/stationsApi'
 import { fmtDate } from '../../utils/date'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const lbl: React.CSSProperties = {
   fontFamily: "'Space Grotesk', system-ui, sans-serif",

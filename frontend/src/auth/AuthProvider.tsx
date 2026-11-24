@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthState>({
   logout: () => {},
 })
 
-const C = { angst: '#0A0A0A', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../theme'
 
 function LoadingScreen() {
   return (
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (!state.authenticated) return <LoginPage />
 
   return (
-    <AuthContext.Provider value={{ ...state, logout: () => keycloak.logout() }}>
+    <AuthContext.Provider value={{ ...state, logout: () => keycloak.logout({ redirectUri: window.location.origin + '/' }) }}>
       {children}
     </AuthContext.Provider>
   )

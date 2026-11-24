@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import api from '../api/axiosClient'
 import { OfficerAssignment } from '../types/admin.types'
 
-const C = { charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../theme'
 
 function useOfficerAssignment(keycloakUserId: string | undefined) {
   return useQuery<OfficerAssignment>({

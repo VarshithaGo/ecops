@@ -12,4 +12,7 @@ export const stationsApi = {
   listAssignments: (stationId: string) =>
     api.get(`/assignments?stationId=${stationId}`).then((r) => r.data),
   assign: (data: unknown) => api.post('/assignments', data).then((r) => r.data),
+  registerOfficer: (data: unknown) => api.post('/assignments/register', data).then((r) => r.data),
+  myAssignment: (keycloakUserId: string) =>
+    api.get(`/assignments/officer/${keycloakUserId}`).then((r) => r.data),
 }

@@ -8,7 +8,7 @@ import { stationsApi } from '../../api/stationsApi'
 import { Station } from '../../types/admin.types'
 import { Link } from 'react-router-dom'
 
-const C = { angst: '#0A0A0A', kite: '#371E1E', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
+import { C } from '../../theme'
 
 const inputStyle: React.CSSProperties = {
   padding: '10px 14px', background: C.bark, color: C.ashes,

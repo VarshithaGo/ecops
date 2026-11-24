@@ -43,6 +43,15 @@ export const caseApi = {
   getFirCourtDisposal: (firId: string) =>
     api.get(`/firs/${firId}/court-disposal`).then((r) => r.data),
 
+  // Audit trail + BNSS §193 deadline
+  getFirAudit: (firId: string) =>
+    api.get(`/firs/${firId}/audit`).then((r) => r.data),
+  getFirDeadline: (firId: string) =>
+    api.get(`/firs/${firId}/deadline`).then((r) => r.data),
+
+  // Dashboard metrics
+  getDashboardStats: () => api.get('/dashboard/stats').then((r) => r.data),
+
   // FIR transfer (Zero FIR)
   transferFir: (firId: string, data: { targetStationCode: string; notes?: string }) =>
     api.put(`/firs/${firId}/transfer`, data).then((r) => r.data),

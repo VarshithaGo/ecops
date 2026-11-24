@@ -18,7 +18,7 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOriginPatterns:
-              - "http://localhost:5173"
+              - "http://localhost:*"
               - "http://ecops.local"
             allowedMethods:
               - GET
@@ -69,7 +69,8 @@ spring:
             - Path=/api/v1/complaints/**, /api/v1/firs/**, /api/v1/ncr/**,
                     /api/v1/warrants/**, /api/v1/criminal-records/**,
                     /api/v1/property/**, /api/v1/charge-sheets/**,
-                    /api/v1/final-reports/**, /api/v1/court-disposals/**
+                    /api/v1/final-reports/**, /api/v1/court-disposals/**,
+                    /api/v1/dashboard/**
           filters:
             - AuthHeaderForwardFilter
 

@@ -3,78 +3,108 @@ import { useState } from 'react'
 import { SectionPanel } from '../../../components/SectionPanel'
 import { DetailRow } from '../../../components/DetailRow'
 import { StatusBadge } from '../../../components/StatusBadge'
+import { StateDistrictSelect } from '../../../components/StateDistrictSelect'
 import { CriminalRecord } from '../../../types/criminal.types'
 import { caseApi } from '../../../api/caseApi'
+import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
-const C = { angst: '#0A0A0A', bark: '#33312F', charcoal: '#726E68', ashes: '#B7B4AE' }
-const inp: React.CSSProperties = { padding: '10px 14px', background: C.bark, color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, width: '100%', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }
-const lbl: React.CSSProperties = { display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }
+const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
+const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
+const errText: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, color: '#B91C1C', marginTop: 4 }
 
 interface Props { firId: string; criminals: CriminalRecord[] }
+
+function apiError(err: unknown): string {
+  const e = err as { response?: { data?: { message?: string; error?: string } } }
+  return e?.response?.data?.message || e?.response?.data?.error || 'Could not save the record. Please try again.'
+}
 
 export function CriminalPanel({ firId, criminals }: Props) {
   const qc = useQueryClient()
   const [f, setF] = useState({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'SUSPECT' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
 
+  const aadhaarError = !!f.aadhaarRef && !/^\d{12}$/.test(f.aadhaarRef.trim())
+  const ageError = !!f.ageAtCrime && (Number(f.ageAtCrime) < 0 || Number(f.ageAtCrime) > 120)
+
   const add = useMutation({
-    mutationFn: () => caseApi.addCriminal(firId, { fullName: f.fullName, dob: f.dob || null, ageAtCrime: f.ageAtCrime ? Number(f.ageAtCrime) : null, gender: f.gender || null, state: f.state, district: f.district, area: f.area || null, aadhaarRef: f.aadhaarRef || null, role: f.role }),
+    mutationFn: () => caseApi.addCriminal(firId, { fullName: f.fullName.trim(), dob: f.dob || null, ageAtCrime: f.ageAtCrime ? Number(f.ageAtCrime) : null, gender: f.gender || null, state: f.state, district: f.district, area: f.area || null, aadhaarRef: f.aadhaarRef || null, role: f.role }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-criminals', firId] }); setF({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'SUSPECT' }) },
   })
 
-  const canAdd = f.fullName && f.state && f.district && !add.isPending
+  const canAdd = !!f.fullName.trim() && !!f.state && !!f.district && !aadhaarError && !ageError && !add.isPending
 
   const addForm = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontFamily: FONT.ui }}>
       <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 2 }}><label style={lbl}>Full Name</label><input value={f.fullName} onChange={set('fullName')} style={inp} /></div>
+        <div style={{ flex: 2 }}><label style={lbl}>Full name *</label><input value={f.fullName} onChange={set('fullName')} style={inp} placeholder="Name as recorded" /></div>
         <div style={{ flex: 1 }}>
           <label style={lbl}>Role</label>
           <select value={f.role} onChange={set('role')} style={inp}>
-            <option value="SUSPECT">SUSPECT</option>
-            <option value="ACCUSED">ACCUSED</option>
-            <option value="WITNESS">WITNESS</option>
-            <option value="CONVICTED_PERSON">CONVICTED PERSON</option>
+            <option value="SUSPECT">Suspect</option>
+            <option value="ACCUSED">Accused</option>
+            <option value="WITNESS">Witness</option>
+            <option value="CONVICTED_PERSON">Convicted person</option>
           </select>
         </div>
         <div style={{ flex: 1 }}>
           <label style={lbl}>Gender</label>
           <select value={f.gender} onChange={set('gender')} style={inp}>
             <option value="">—</option>
-            <option value="MALE">MALE</option>
-            <option value="FEMALE">FEMALE</option>
-            <option value="OTHER">OTHER</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
           </select>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 1 }}><label style={lbl}>Date of Birth</label><input type="date" value={f.dob} onChange={set('dob')} style={inp} /></div>
-        <div style={{ flex: 1 }}><label style={lbl}>Age at Crime</label><input type="number" min={0} value={f.ageAtCrime} onChange={set('ageAtCrime')} style={inp} /></div>
+        <div style={{ flex: 1 }}><label style={lbl}>Date of birth</label><input type="date" max={new Date().toISOString().slice(0, 10)} value={f.dob} onChange={set('dob')} style={inp} /></div>
+        <div style={{ flex: 1 }}>
+          <label style={lbl}>Age at crime</label>
+          <input type="number" min={0} max={120} value={f.ageAtCrime} onChange={set('ageAtCrime')} style={{ ...inp, borderColor: ageError ? '#B91C1C' : FIELD_BORDER }} />
+          {ageError && <div style={errText}>Enter a valid age (0–120).</div>}
+        </div>
       </div>
+
+      {/* State -> District dependent dropdowns */}
+      <StateDistrictSelect
+        state={f.state}
+        district={f.district}
+        onState={(v) => setF((p) => ({ ...p, state: v }))}
+        onDistrict={(v) => setF((p) => ({ ...p, district: v }))}
+        required
+      />
+
       <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 1 }}><label style={lbl}>State</label><input value={f.state} onChange={set('state')} style={inp} /></div>
-        <div style={{ flex: 1 }}><label style={lbl}>District</label><input value={f.district} onChange={set('district')} style={inp} /></div>
+        <div style={{ flex: 1 }}><label style={lbl}>Area <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={f.area} onChange={set('area')} style={inp} placeholder="Locality / landmark" /></div>
+        <div style={{ flex: 1 }}>
+          <label style={lbl}>Aadhaar ref <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label>
+          <input value={f.aadhaarRef} onChange={set('aadhaarRef')} inputMode="numeric" maxLength={12} style={{ ...inp, borderColor: aadhaarError ? '#B91C1C' : FIELD_BORDER }} placeholder="12-digit number" />
+          {aadhaarError && <div style={errText}>Aadhaar must be 12 digits.</div>}
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 1 }}><label style={lbl}>Area <span style={{ opacity: 0.6 }}>(optional)</span></label><input value={f.area} onChange={set('area')} style={inp} /></div>
-        <div style={{ flex: 1 }}><label style={lbl}>Aadhaar Ref <span style={{ opacity: 0.6 }}>(optional)</span></label><input value={f.aadhaarRef} onChange={set('aadhaarRef')} style={inp} /></div>
-      </div>
+
+      {add.isError && (
+        <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13 }}>
+          {apiError(add.error)}
+        </div>
+      )}
+
       <button onClick={() => add.mutate()} disabled={!canAdd}
-        style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: canAdd ? C.ashes : C.charcoal, border: `2px solid ${canAdd ? C.charcoal : C.bark}`, borderRadius: 3, cursor: canAdd ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
-        {add.isPending ? 'SAVING…' : 'ADD CRIMINAL RECORD'}
+        style={{ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: canAdd ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: canAdd ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
+        {add.isPending ? 'Saving…' : 'Add criminal record'}
       </button>
-      <style>{`select option { background: ${C.bark}; color: ${C.ashes}; }`}</style>
     </div>
   )
 
   return (
     <SectionPanel title="Criminal Records" addLabel="Add Criminal Record" addForm={addForm}>
       {criminals.length === 0 ? (
-        <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>No criminal records linked to this FIR.</p>
+        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No criminal records linked to this FIR.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {criminals.map((c) => (
-            <div key={c.id} style={{ padding: '10px 14px', background: `${C.angst}66`, borderRadius: 3, border: `1px solid ${C.bark}` }}>
+            <div key={c.id} style={{ padding: '12px 14px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
               <DetailRow label="Name" value={c.fullName} />
               <DetailRow label="Role" value={c.role.replace(/_/g, ' ')} />
               {c.gender && <DetailRow label="Gender" value={c.gender} />}

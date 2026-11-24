@@ -1,0 +1,46 @@
+/* e-Cops global baseline. Inline styles still win per-element, but this sets
+   the page canvas, the default font, visible keyboard focus rings, and sane
+   form-control defaults the old app never had. */
+
+:root { color-scheme: light; }
+
+/* App-wide font uniformity: many older screens still hardcode the display font
+   'Anton'. Instead of editing each one, remap that family to the clean UI sans
+   so every heading matches the rest of the app (and never falls back to Impact). */
+@font-face {
+  font-family: 'Anton';
+  src: local('Inter'), local('Inter Regular'), local('Helvetica Neue'), local('Arial'), local('Segoe UI');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: #EDF1F6;
+  color: #16202C;
+  font-family: 'Inter', 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible focus ring for keyboard users (the old inputs used outline:none). */
+:focus-visible {
+  outline: 2px solid #1C4E80;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; }
+
+::placeholder { color: #9AA4B0; opacity: 1; }
+::selection { background: #1C4E8033; }
+
+/* Quieter, modern scrollbars. */
+* { scrollbar-width: thin; scrollbar-color: #C3CBD5 transparent; }
+*::-webkit-scrollbar { height: 10px; width: 10px; }
+*::-webkit-scrollbar-thumb { background: #C3CBD5; border-radius: 6px; }

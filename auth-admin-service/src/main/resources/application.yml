@@ -36,6 +36,11 @@ spring:
 ecops:
   internal:
     secret: ${ECOPS_INTERNAL_SECRET:dev-internal-secret-change-in-prod}
+  keycloak:
+    server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8085}
+    realm: ${KEYCLOAK_REALM:ecops-realm}
+    admin-client-id: ${KEYCLOAK_SERVICE_CLIENT_ID:ecops-services}
+    admin-client-secret: ${KEYCLOAK_SERVICE_CLIENT_SECRET:change-me}
 
 management:
   endpoints:

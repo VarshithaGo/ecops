@@ -9,6 +9,9 @@ import {
   ChargeSheet,
   FinalReport,
   CourtDisposal,
+  AuditEvent,
+  Deadline,
+  DashboardStats,
 } from '../types/case.types'
 import { CriminalRecord } from '../types/criminal.types'
 
@@ -82,5 +85,27 @@ export function useCourtDisposal(firId: string): UseQueryResult<CourtDisposal | 
         if (e?.response?.status === 404) return null
         throw e
       }),
+  })
+}
+
+export function useFIRAudit(firId: string): UseQueryResult<AuditEvent[]> {
+  return useQuery({
+    queryKey: ['fir-audit', firId],
+    queryFn: () => caseApi.getFirAudit(firId),
+  })
+}
+
+export function useFIRDeadline(firId: string): UseQueryResult<Deadline> {
+  return useQuery({
+    queryKey: ['fir-deadline', firId],
+    queryFn: () => caseApi.getFirDeadline(firId),
+  })
+}
+
+export function useDashboardStats(): UseQueryResult<DashboardStats> {
+  return useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => caseApi.getDashboardStats(),
+    refetchOnWindowFocus: true,
   })
 }
