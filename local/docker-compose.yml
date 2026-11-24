@@ -43,6 +43,8 @@ services:
     volumes:
       # Any *-realm.json here is imported on first start (idempotent after that).
       - ./import:/opt/keycloak/data/import:ro
+      # Our branded light login theme (realm's loginTheme = ecops-theme).
+      - ../keycloak-theme/ecops-theme:/opt/keycloak/themes/ecops-theme:ro
 
 volumes:
   ecops-pgdata:

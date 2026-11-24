@@ -35,34 +35,34 @@
 
  :: Spring Boot ::                (v3.3.5)
 
-2026-11-24T19:27:25.192+05:30  INFO 27344 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : Starting CitizenServiceApplication using Java 21.0.13.1 with PID 27344 (/Users/I578472/Downloads/ecops/citizen-service/target/classes started by I578472 in /Users/I578472/Downloads/ecops/citizen-service)
-2026-11-24T19:27:25.193+05:30  INFO 27344 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : No active profile set, falling back to 1 default profile: "default"
-2026-11-24T19:27:25.700+05:30  INFO 27344 --- [citizen-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-11-24T19:27:25.731+05:30  INFO 27344 --- [citizen-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 27 ms. Found 2 JPA repository interfaces.
-2026-11-24T19:27:26.111+05:30  INFO 27344 --- [citizen-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
-2026-11-24T19:27:26.117+05:30  INFO 27344 --- [citizen-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-11-24T19:27:26.117+05:30  INFO 27344 --- [citizen-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
-2026-11-24T19:27:26.154+05:30  INFO 27344 --- [citizen-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-11-24T19:27:26.154+05:30  INFO 27344 --- [citizen-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 940 ms
-2026-11-24T19:27:26.410+05:30  INFO 27344 --- [citizen-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-11-24T19:27:26.570+05:30  INFO 27344 --- [citizen-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@3212bfd
-2026-11-24T19:27:26.571+05:30  INFO 27344 --- [citizen-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-11-24T19:27:26.589+05:30  INFO 27344 --- [citizen-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5435/citizen_db (PostgreSQL 16.13)
-2026-11-24T19:27:26.623+05:30  INFO 27344 --- [citizen-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
-2026-11-24T19:27:26.624+05:30  INFO 27344 --- [citizen-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.012s)
-2026-11-24T19:27:26.665+05:30  INFO 27344 --- [citizen-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
-2026-11-24T19:27:26.703+05:30  INFO 27344 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
-2026-11-24T19:27:26.707+05:30  INFO 27344 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - create citizens"
-2026-11-24T19:27:26.735+05:30  INFO 27344 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - create aadhaar verifications"
-2026-11-24T19:27:26.750+05:30  INFO 27344 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 2 migrations to schema "public", now at version v2 (execution time 00:00.024s)
-2026-11-24T19:27:26.795+05:30  INFO 27344 --- [citizen-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-11-24T19:27:26.822+05:30  INFO 27344 --- [citizen-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
-2026-11-24T19:27:26.837+05:30  INFO 27344 --- [citizen-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-11-24T19:27:26.981+05:30  INFO 27344 --- [citizen-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-11-24T19:27:27.012+05:30  WARN 27344 --- [citizen-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-11-24T19:27:27.432+05:30  INFO 27344 --- [citizen-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-11-24T19:27:27.505+05:30  INFO 27344 --- [citizen-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-11-24T19:27:27.765+05:30  WARN 27344 --- [citizen-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-11-24T19:27:27.931+05:30  INFO 27344 --- [citizen-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-11-24T19:27:28.218+05:30  INFO 27344 --- [citizen-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
-2026-11-24T19:27:28.226+05:30  INFO 27344 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : Started CitizenServiceApplication in 3.24 seconds (process running for 3.465)
+2026-11-24T20:55:27.370+05:30  INFO 71109 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : Starting CitizenServiceApplication using Java 21.0.13.1 with PID 71109 (/Users/I578472/Downloads/ecops/citizen-service/target/classes started by I578472 in /Users/I578472/Downloads/ecops/citizen-service)
+2026-11-24T20:55:27.373+05:30  INFO 71109 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-11-24T20:55:27.906+05:30  INFO 71109 --- [citizen-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-24T20:55:27.937+05:30  INFO 71109 --- [citizen-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 26 ms. Found 2 JPA repository interfaces.
+2026-11-24T20:55:28.415+05:30  INFO 71109 --- [citizen-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2026-11-24T20:55:28.423+05:30  INFO 71109 --- [citizen-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-24T20:55:28.423+05:30  INFO 71109 --- [citizen-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-11-24T20:55:28.472+05:30  INFO 71109 --- [citizen-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-24T20:55:28.473+05:30  INFO 71109 --- [citizen-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1079 ms
+2026-11-24T20:55:28.774+05:30  INFO 71109 --- [citizen-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-24T20:55:28.889+05:30  INFO 71109 --- [citizen-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1cc9bd9b
+2026-11-24T20:55:28.890+05:30  INFO 71109 --- [citizen-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-24T20:55:28.909+05:30  INFO 71109 --- [citizen-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5435/citizen_db (PostgreSQL 16.13)
+2026-11-24T20:55:28.941+05:30  INFO 71109 --- [citizen-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-24T20:55:28.944+05:30  INFO 71109 --- [citizen-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.012s)
+2026-11-24T20:55:28.973+05:30  INFO 71109 --- [citizen-service] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-24T20:55:29.015+05:30  INFO 71109 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-24T20:55:29.019+05:30  INFO 71109 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - create citizens"
+2026-11-24T20:55:29.053+05:30  INFO 71109 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - create aadhaar verifications"
+2026-11-24T20:55:29.067+05:30  INFO 71109 --- [citizen-service] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 2 migrations to schema "public", now at version v2 (execution time 00:00.027s)
+2026-11-24T20:55:29.123+05:30  INFO 71109 --- [citizen-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-11-24T20:55:29.161+05:30  INFO 71109 --- [citizen-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-11-24T20:55:29.178+05:30  INFO 71109 --- [citizen-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-11-24T20:55:29.308+05:30  INFO 71109 --- [citizen-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-24T20:55:29.333+05:30  WARN 71109 --- [citizen-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-11-24T20:55:29.765+05:30  INFO 71109 --- [citizen-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-24T20:55:29.787+05:30  INFO 71109 --- [citizen-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-24T20:55:30.046+05:30  WARN 71109 --- [citizen-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-24T20:55:30.238+05:30  INFO 71109 --- [citizen-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-24T20:55:30.505+05:30  INFO 71109 --- [citizen-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2026-11-24T20:55:30.511+05:30  INFO 71109 --- [citizen-service] [           main] c.e.citizen.CitizenServiceApplication    : Started CitizenServiceApplication in 3.338 seconds (process running for 3.544)

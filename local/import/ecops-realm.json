@@ -2,6 +2,7 @@
   "realm": "ecops-realm",
   "enabled": true,
   "sslRequired": "none",
+  "loginTheme": "ecops-theme",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "roles": {
