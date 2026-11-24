@@ -20,6 +20,10 @@ public class ArrestWarrant {
     @JoinColumn(name = "fir_id", nullable = false)
     private Fir fir;
 
+    // Read-only flat FK so the warrant JSON always carries firId (the lazy `fir` serializes as null)
+    @Column(name = "fir_id", insertable = false, updatable = false)
+    private UUID firId;
+
     @Column(name = "requested_by_officer_id", nullable = false, length = 255)
     private String requestedByOfficerId;
 

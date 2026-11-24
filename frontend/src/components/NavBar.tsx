@@ -14,6 +14,7 @@ const LINKS: { to: string; label: string; roles: string[] }[] = [
   { to: '/officer/criminals',  label: 'Criminal Records',   roles: [ROLES.OFFICER, ROLES.ADMIN] },
   { to: '/magistrate/warrants',label: 'Warrants',           roles: [ROLES.MAGISTRATE] },
   { to: '/magistrate/ncr',     label: 'NCR Referrals',      roles: [ROLES.MAGISTRATE] },
+  { to: '/magistrate/officers',label: 'Officers',           roles: [ROLES.MAGISTRATE] },
   { to: '/citizen/file-complaint', label: 'File Complaint', roles: [ROLES.CITIZEN] },
   { to: '/citizen/track',      label: 'Track Cases',        roles: [ROLES.CITIZEN] },
 ]

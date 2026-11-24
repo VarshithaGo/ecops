@@ -63,6 +63,12 @@ public class OfficerAssignmentService {
                 .stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AssignmentResponse> listAll() {
+        return assignmentRepository.findAll()
+                .stream().map(this::toResponse).toList();
+    }
+
     @Transactional
     public AssignmentResponse deactivate(UUID id) {
         OfficerAssignment oa = assignmentRepository.findById(id)
@@ -97,6 +103,7 @@ public class OfficerAssignmentService {
                 oa.getRank(),
                 oa.getBadgeNumber(),
                 oa.getIsActive(),
-                oa.getAssignedAt());
+                oa.getAssignedAt(),
+                oa.getUnassignedAt());
     }
 }
