@@ -4,6 +4,9 @@ import { caseApi } from '../../api/caseApi'
 import { Fir } from '../../types/case.types'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
+import { useAuth } from '../../auth/AuthProvider'
+import { useCurrentOfficer } from '../../hooks/useCurrentOfficer'
+import { ROLES } from '../../utils/roles'
 
 import { C, A, FONT } from '../../theme'
 
@@ -45,6 +48,11 @@ function DeadlineBadge({ fir }: { fir: Fir }) {
 
 export function FIRList() {
   const { data, isLoading, error } = useQuery<Fir[]>({ queryKey: ['firs'], queryFn: caseApi.listFirs })
+  const { roles } = useAuth()
+  const { stationCode } = useCurrentOfficer()
+  const isAdmin = roles.includes(ROLES.ADMIN)
+  // Officers see only their own station's FIRs; admins see all.
+  const firs = (data ?? []).filter((f) => isAdmin || !stationCode || f.stationCode === stationCode)
 
   if (isLoading) return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal }}>Loading FIRs...</div>
   if (error)     return <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#f87171' }}>Error loading FIRs.</div>
@@ -74,7 +82,7 @@ export function FIRList() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((fir) => (
+            {firs.map((fir) => (
               <tr key={fir.id}
                 onMouseEnter={(e) => (e.currentTarget.style.background = `${C.bark}88`)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
@@ -108,7 +116,7 @@ export function FIRList() {
                 </td>
               </tr>
             ))}
-            {data?.length === 0 && (
+            {firs.length === 0 && (
               <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No FIRs on record.</td></tr>
             )}
           </tbody>
