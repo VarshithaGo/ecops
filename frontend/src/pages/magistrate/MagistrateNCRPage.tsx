@@ -6,24 +6,16 @@ import { Station } from '../../types/admin.types'
 import { stationsApi } from '../../api/stationsApi'
 import { fmtDate } from '../../utils/date'
 
-import { C } from '../../theme'
+import { C, A, FONT, FIELD_BORDER } from '../../theme'
 
-const lbl: React.CSSProperties = {
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: C.charcoal, marginBottom: 2,
-}
-const val: React.CSSProperties = {
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: 13, color: C.ashes, lineHeight: 1.6,
-}
+const lbl: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, color: C.charcoal, marginBottom: 2 }
+const val: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 14, color: C.ashes, lineHeight: 1.6 }
 const inputStyle: React.CSSProperties = {
-  padding: '10px 14px', background: C.bark, color: C.ashes,
-  border: `2px solid ${C.charcoal}`, borderRadius: 3,
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: 13, width: '100%', boxSizing: 'border-box', outline: 'none',
-  colorScheme: 'dark',
+  padding: '10px 12px', background: '#fff', color: C.ashes,
+  border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6,
+  fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none',
 }
+const card: React.CSSProperties = { background: '#fff', border: `1px solid ${C.bark}`, borderRadius: 10, padding: '20px 22px', boxShadow: '0 1px 3px rgba(16,32,44,0.06)' }
 
 export function MagistrateNCRPage() {
   const qc = useQueryClient()
@@ -69,21 +61,14 @@ export function MagistrateNCRPage() {
       </p>
 
       {referred.length === 0 && (
-        <div style={{
-          fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal,
-          padding: 32, border: `2px solid ${C.bark}`, borderRadius: 4,
-          textAlign: 'center', backdropFilter: 'blur(8px)', background: `${C.kite}99`,
-        }}>
+        <div style={{ ...card, color: C.charcoal, padding: 32, textAlign: 'center' }}>
           No NCR referrals pending your review.
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {referred.map((ncr) => (
-          <div key={ncr.id} style={{
-            background: `${C.kite}99`, border: `2px solid ${C.charcoal}`,
-            borderRadius: 4, padding: '20px 24px', backdropFilter: 'blur(8px)',
-          }}>
+          <div key={ncr.id} style={card}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
               <div style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 18, letterSpacing: '0.06em', color: C.ashes }}>
@@ -125,13 +110,8 @@ export function MagistrateNCRPage() {
 
             <button
               onClick={() => { setSelected(ncr); setOrderNotes('') }}
-              style={{
-                padding: '7px 22px',
-                fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em',
-                background: 'transparent', color: C.ashes,
-                border: `1.5px solid ${C.charcoal}`, borderRadius: 3, cursor: 'pointer',
-              }}>
-              ORDER INVESTIGATION
+              style={{ padding: '9px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: A.accent, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+              Order investigation
             </button>
           </div>
         ))}
@@ -140,44 +120,44 @@ export function MagistrateNCRPage() {
       {/* Modal */}
       {selected && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.75)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+          position: 'fixed', inset: 0, background: 'rgba(16,32,44,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16,
         }}>
-          <div style={{ background: C.kite, border: `2px solid ${C.charcoal}`, borderRadius: 4, padding: 32, minWidth: 460, maxWidth: 540, boxShadow: `0 24px 64px ${C.angst}` }}>
-            <h3 style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 20, letterSpacing: '0.06em', color: C.ashes, margin: '0 0 4px' }}>
+          <div style={{ background: '#fff', border: `1px solid ${C.bark}`, borderRadius: 12, padding: 32, minWidth: 460, maxWidth: 540, boxShadow: '0 24px 60px rgba(16,32,44,0.30)' }}>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: C.ashes, margin: '0 0 4px', fontFamily: FONT.ui }}>
               Order Investigation
             </h3>
-            <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, color: C.charcoal, marginBottom: 16 }}>
+            <div style={{ fontFamily: FONT.ui, fontSize: 14, color: C.charcoal, marginBottom: 16 }}>
               NCR: <span style={{ color: C.ashes, fontFamily: 'monospace', fontWeight: 700 }}>{selected.ncrNumber}</span>
             </div>
             {selected.remarks && (
-              <div style={{ marginBottom: 16, padding: '8px 12px', background: `${C.angst}44`, borderRadius: 3, border: `1px solid ${C.bark}` }}>
+              <div style={{ marginBottom: 16, padding: '10px 12px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
                 <div style={{ ...lbl, marginBottom: 4 }}>Officer Remarks</div>
                 <div style={val}>{selected.remarks}</div>
               </div>
             )}
-            <label style={lbl}>Order Notes <span style={{ opacity: 0.6, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10 }}>(optional)</span></label>
+            <label style={lbl}>Order notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
             <textarea
               placeholder="Enter your directions to the investigating officer…"
               value={orderNotes}
               onChange={(e) => setOrderNotes(e.target.value)}
               rows={4}
-              style={{ ...inputStyle, resize: 'vertical', marginBottom: 20 }}
+              style={{ ...inputStyle, resize: 'vertical', margin: '6px 0 20px' }}
             />
             <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={() => orderInvestigation.mutate(selected.id)}
                 disabled={orderInvestigation.isPending}
-                style={{ padding: '9px 24px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 13, letterSpacing: '0.12em', background: 'transparent', color: '#4ade80', border: '2px solid #4ade80', borderRadius: 3, cursor: 'pointer' }}>
-                {orderInvestigation.isPending ? 'ORDERING…' : 'ORDER INVESTIGATION'}
+                style={{ padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: '#15803D', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                {orderInvestigation.isPending ? 'Ordering…' : 'Order investigation'}
               </button>
               <button onClick={() => setSelected(null)}
-                style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 13, letterSpacing: '0.12em', background: 'transparent', color: C.charcoal, border: `2px solid ${C.bark}`, borderRadius: 3, cursor: 'pointer' }}>
-                CANCEL
+                style={{ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: '#fff', color: C.ashes, border: `1px solid ${C.charcoal}66`, borderRadius: 8, cursor: 'pointer' }}>
+                Cancel
               </button>
             </div>
             {orderInvestigation.isError && (
-              <div style={{ marginTop: 12, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 12, color: '#f87171' }}>
+              <div style={{ marginTop: 12, fontFamily: FONT.ui, fontSize: 13, color: '#B91C1C' }}>
                 Failed to submit order. Please try again.
               </div>
             )}
