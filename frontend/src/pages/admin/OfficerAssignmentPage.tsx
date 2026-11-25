@@ -19,8 +19,8 @@ const EMPTY: RegForm = { firstName: '', lastName: '', rank: 'Sub-Inspector', bad
 interface RegResult { username: string; tempPassword: string; officerName: string; badgeNumber: string; stationName: string; stationCode: string }
 
 function apiError(err: unknown): string {
-  const e = err as { response?: { data?: { message?: string; error?: string } } }
-  return e?.response?.data?.message || e?.response?.data?.error || 'Could not register the officer. Please try again.'
+  const e = err as { response?: { data?: { detail?: string; message?: string; error?: string } } }
+  return e?.response?.data?.detail || e?.response?.data?.message || e?.response?.data?.error || 'Could not complete the request. Please try again.'
 }
 
 export function OfficerAssignmentPage() {
@@ -58,6 +58,37 @@ export function OfficerAssignmentPage() {
     setErrors(errs)
     if (Object.keys(errs).length === 0) { setResult(null); register.mutate(form) }
   }
+
+  // ---- Reassign an existing officer to another station ----
+  const { data: allAssignments = [] } = useQuery<OfficerAssignment[]>({
+    queryKey: ['all-assignments'], queryFn: stationsApi.listAllAssignments,
+  })
+  // One row per officer: their active posting if any, else the latest.
+  const officers = Array.from(
+    allAssignments.reduce((m, a) => {
+      const cur = m.get(a.keycloakUserId)
+      if (!cur || (a.isActive && !cur.isActive)) m.set(a.keycloakUserId, a)
+      return m
+    }, new Map<string, OfficerAssignment>()).values(),
+  )
+  const [reassign, setReassign] = useState({ keycloakUserId: '', stationId: '' })
+  const [reassignMsg, setReassignMsg] = useState('')
+  const selectedOfficer = officers.find((o) => o.keycloakUserId === reassign.keycloakUserId)
+  const reassignMut = useMutation({
+    mutationFn: () => stationsApi.assign({
+      keycloakUserId: reassign.keycloakUserId,
+      stationId: reassign.stationId,
+      rank: selectedOfficer?.rank ?? null,
+      badgeNumber: selectedOfficer?.badgeNumber,
+    }),
+    onSuccess: () => {
+      setReassignMsg('Officer reassigned.')
+      qc.invalidateQueries({ queryKey: ['assignments'] })
+      qc.invalidateQueries({ queryKey: ['all-assignments'] })
+      setReassign({ keycloakUserId: '', stationId: '' })
+    },
+  })
+  const canReassign = !!reassign.keycloakUserId && !!reassign.stationId && !reassignMut.isPending
 
   if (isLoading) return <div style={{ padding: 32, fontFamily: FONT.ui, color: C.charcoal }}>Loading stations…</div>
 
@@ -133,6 +164,46 @@ export function OfficerAssignmentPage() {
             {register.isPending ? 'Registering…' : 'Register officer'}
           </button>
         </form>
+      </div>
+
+      {/* Reassign existing officer */}
+      <div style={{ ...card, marginBottom: 28 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.ashes, marginBottom: 16 }}>Reassign an officer</div>
+        {reassignMsg && (
+          <div style={{ background: '#ECFDF3', border: '1px solid #ABEFC6', color: '#15803D', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 14 }}>{reassignMsg}</div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div>
+            <label style={label}>Officer</label>
+            <select value={reassign.keycloakUserId} onChange={(e) => { setReassign((r) => ({ ...r, keycloakUserId: e.target.value })); setReassignMsg('') }} style={inp}>
+              <option value="">Select officer</option>
+              {officers.map((o) => (
+                <option key={o.keycloakUserId} value={o.keycloakUserId}>
+                  {o.badgeNumber} · {o.officerName ?? '—'}{o.rank ? ` · ${o.rank}` : ''} ({o.isActive ? o.stationCode : 'unassigned'})
+                </option>
+              ))}
+            </select>
+            {selectedOfficer && (
+              <div style={{ fontSize: 12, color: C.charcoal, marginTop: 4 }}>
+                Currently: {selectedOfficer.isActive ? `${selectedOfficer.stationName} (${selectedOfficer.stationCode})` : 'unassigned'} · keeps badge {selectedOfficer.badgeNumber}
+              </div>
+            )}
+          </div>
+          <div>
+            <label style={label}>New station</label>
+            <select value={reassign.stationId} onChange={(e) => setReassign((r) => ({ ...r, stationId: e.target.value }))} style={inp}>
+              <option value="">Select station</option>
+              {stations.map((s) => <option key={s.id} value={s.id}>{s.stationCode} — {s.stationName}</option>)}
+            </select>
+          </div>
+        </div>
+        {reassignMut.isError && (
+          <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 14 }}>{apiError(reassignMut.error)}</div>
+        )}
+        <button onClick={() => { setReassignMsg(''); reassignMut.mutate() }} disabled={!canReassign}
+          style={{ padding: '10px 22px', fontSize: 14, fontWeight: 600, background: canReassign ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: canReassign ? 'pointer' : 'not-allowed' }}>
+          {reassignMut.isPending ? 'Reassigning…' : 'Reassign officer'}
+        </button>
       </div>
 
       {/* View assignments by station */}

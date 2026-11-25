@@ -30,7 +30,7 @@ public class OfficerAssignment {
     @Column(length = 100)
     private String rank;
 
-    @Column(name = "badge_number", nullable = false, unique = true, length = 50)
+    @Column(name = "badge_number", nullable = false, length = 50)
     private String badgeNumber;
 
     @Column(name = "is_active", nullable = false)
