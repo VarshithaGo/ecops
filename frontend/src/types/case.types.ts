@@ -6,6 +6,7 @@ export interface Complaint {
   walkInName: string | null
   walkInPhone: string | null
   walkInAddress: string | null
+  registeredByOfficerId: string | null
   description: string
   incidentDate: string
   incidentLocation: string | null
@@ -72,6 +73,7 @@ export interface NcrEntry {
   id: string
   ncrNumber: string
   stationId: string
+  recordedByOfficerId: string | null
   form76aIssued: boolean
   remarks: string | null
   status: string
@@ -79,6 +81,19 @@ export interface NcrEntry {
   magistrateId: string | null
   magistrateOrderNotes: string | null
   magistrateOrderedAt: string | null
+  // investigation lifecycle (BNSS §174)
+  assignedIoOfficerId: string | null
+  investigationFindings: string | null
+  outcome: string | null
+  closedByOfficerId: string | null
+  closedAt: string | null
+  escalatedFirId: string | null
+  // complaint context
+  complaintNumber: string | null
+  complaintDescription: string | null
+  incidentDate: string | null
+  incidentLocation: string | null
+  complainantName: string | null
 }
 
 export interface ArrestWarrant {

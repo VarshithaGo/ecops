@@ -31,6 +31,7 @@ const COLORS: Record<string, string> = {
   OPEN: '#2563eb',
   REFERRED_TO_MAGISTRATE: '#7c3aed',
   MAGISTRATE_ORDERED: '#d97706',
+  ESCALATED_TO_FIR: '#dc2626',
   // Criminal record roles/statuses
   NOT_ARRESTED: '#dc2626',
   ARRESTED: '#d97706',

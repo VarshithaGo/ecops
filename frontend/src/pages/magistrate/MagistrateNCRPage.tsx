@@ -4,7 +4,9 @@ import { caseApi } from '../../api/caseApi'
 import { NcrEntry } from '../../types/case.types'
 import { Station } from '../../types/admin.types'
 import { stationsApi } from '../../api/stationsApi'
+import { OfficerChip } from '../../components/OfficerChip'
 import { fmtDate } from '../../utils/date'
+import { apiError } from '../../utils/apiError'
 
 import { C, A, FONT, FIELD_BORDER } from '../../theme'
 
@@ -86,16 +88,26 @@ export function MagistrateNCRPage() {
                 <div style={{ ...val, fontFamily: 'monospace' }}>{stationMap[ncr.stationId] ?? ncr.stationId.slice(0, 8) + '…'}</div>
               </div>
               <div>
+                <div style={lbl}>Referred by</div>
+                <div style={val}><OfficerChip keycloakUserId={ncr.recordedByOfficerId ?? undefined} /></div>
+              </div>
+              <div>
                 <div style={lbl}>Form 76-A Issued</div>
-                <div style={{ ...val, color: ncr.form76aIssued ? '#4ade80' : C.charcoal }}>
+                <div style={{ ...val, color: ncr.form76aIssued ? '#15803D' : C.charcoal }}>
                   {ncr.form76aIssued ? 'Yes' : 'No'}
                 </div>
               </div>
-              <div>
-                <div style={lbl}>Status</div>
-                <div style={{ ...val, fontFamily: 'monospace', letterSpacing: '0.06em', color: '#fbbf24' }}>
-                  REFERRED TO MAGISTRATE
-                </div>
+            </div>
+
+            {/* What the complaint is about — the Magistrate must see this before ordering */}
+            <div style={{ marginBottom: 14, padding: '12px 16px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
+              <div style={lbl}>Complaint</div>
+              <div style={val}>{ncr.complaintDescription ?? '—'}</div>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 10 }}>
+                {ncr.complainantName && <div><div style={lbl}>Complainant</div><div style={val}>{ncr.complainantName}</div></div>}
+                {ncr.incidentDate && <div><div style={lbl}>Incident date</div><div style={val}>{fmtDate(ncr.incidentDate)}</div></div>}
+                {ncr.incidentLocation && <div><div style={lbl}>Location</div><div style={val}>{ncr.incidentLocation}</div></div>}
+                {ncr.complaintNumber && <div><div style={lbl}>Complaint no.</div><div style={{ ...val, fontFamily: 'monospace' }}>{ncr.complaintNumber}</div></div>}
               </div>
             </div>
 
@@ -130,6 +142,14 @@ export function MagistrateNCRPage() {
             <div style={{ fontFamily: FONT.ui, fontSize: 14, color: C.charcoal, marginBottom: 16 }}>
               NCR: <span style={{ color: C.ashes, fontFamily: 'monospace', fontWeight: 700 }}>{selected.ncrNumber}</span>
             </div>
+            <div style={{ marginBottom: 16, padding: '10px 12px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
+              <div style={{ ...lbl, marginBottom: 4 }}>Complaint</div>
+              <div style={val}>{selected.complaintDescription ?? '—'}</div>
+              <div style={{ fontSize: 12, color: C.charcoal, marginTop: 6 }}>
+                {selected.complainantName ? `${selected.complainantName}` : ''}
+                {selected.incidentLocation ? ` · ${selected.incidentLocation}` : ''}
+              </div>
+            </div>
             {selected.remarks && (
               <div style={{ marginBottom: 16, padding: '10px 12px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
                 <div style={{ ...lbl, marginBottom: 4 }}>Officer Remarks</div>
@@ -158,7 +178,7 @@ export function MagistrateNCRPage() {
             </div>
             {orderInvestigation.isError && (
               <div style={{ marginTop: 12, fontFamily: FONT.ui, fontSize: 13, color: '#B91C1C' }}>
-                Failed to submit order. Please try again.
+                {apiError(orderInvestigation.error, 'Failed to submit order. Please try again.')}
               </div>
             )}
           </div>

@@ -55,4 +55,25 @@ public class NcrEntry {
 
     @Column(name = "magistrate_ordered_at")
     private OffsetDateTime magistrateOrderedAt;
+
+    // ── Investigation lifecycle (BNSS §174(3)/(4)) ──
+    @Column(name = "assigned_io_officer_id", length = 255)
+    private String assignedIoOfficerId;
+
+    @Column(name = "investigation_findings", columnDefinition = "TEXT")
+    private String investigationFindings;
+
+    /** PROSECUTION_REPORT | NO_OFFENCE | ESCALATED_TO_FIR */
+    @Column(name = "outcome", length = 40)
+    private String outcome;
+
+    @Column(name = "closed_by_officer_id", length = 255)
+    private String closedByOfficerId;
+
+    @Column(name = "closed_at")
+    private OffsetDateTime closedAt;
+
+    /** Set when §174(4) escalation registers an FIR from this NCR's complaint. */
+    @Column(name = "escalated_fir_id")
+    private UUID escalatedFirId;
 }

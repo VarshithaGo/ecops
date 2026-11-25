@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { caseApi } from '../../api/caseApi'
 import { Complaint } from '../../types/case.types'
+import { Station } from '../../types/admin.types'
+import { stationsApi } from '../../api/stationsApi'
 import { useState } from 'react'
 import { useAuth } from '../../auth/AuthProvider'
 import { useCurrentOfficer } from '../../hooks/useCurrentOfficer'
 import { useCapabilities } from '../../hooks/useCapabilities'
 import { ROLES } from '../../utils/roles'
 import { StatusBadge } from '../../components/StatusBadge'
+import { OfficerChip } from '../../components/OfficerChip'
 import { fmtDate } from '../../utils/date'
 import { apiError } from '../../utils/apiError'
 
@@ -42,6 +45,8 @@ export function ComplaintsInbox() {
   const { stationId: myStationId } = useCurrentOfficer()
   const { can } = useCapabilities()
   const isAdmin = roles.includes(ROLES.ADMIN)
+  const { data: stations = [] } = useQuery<Station[]>({ queryKey: ['stations'], queryFn: stationsApi.list })
+  const stationMap = Object.fromEntries(stations.map((s) => [s.id, s.stationCode]))
   // Officers see only complaints at their own station; admins see all.
   const complaints = (data ?? []).filter((c) => isAdmin || !myStationId || c.stationId === myStationId)
 
@@ -102,8 +107,11 @@ export function ComplaintsInbox() {
           <thead>
             <tr>
               <th style={th}>Number</th>
+              <th style={th}>Complainant</th>
               <th style={th}>Incident Date</th>
               <th style={th}>Description</th>
+              {isAdmin && <th style={th}>Station</th>}
+              {isAdmin && <th style={th}>Filed by</th>}
               <th style={th}>Status</th>
               <th style={th}>Action</th>
             </tr>
@@ -114,8 +122,11 @@ export function ComplaintsInbox() {
                 onMouseEnter={(e) => (e.currentTarget.style.background = `${C.bark}88`)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
                 <td style={{ ...td, fontFamily: 'monospace', fontWeight: 700 }}>{c.complaintNumber}</td>
+                <td style={td}>{c.walkInName ?? (c.citizenKeycloakId ? 'Citizen portal' : '—')}</td>
                 <td style={td}>{fmtDate(c.incidentDate)}</td>
                 <td style={{ ...td, color: C.charcoal }}>{c.description.substring(0, 60)}{c.description.length > 60 ? '…' : ''}</td>
+                {isAdmin && <td style={{ ...td, fontFamily: 'monospace' }}>{stationMap[c.stationId] ?? c.stationId.slice(0, 8) + '…'}</td>}
+                {isAdmin && <td style={td}>{c.registeredByOfficerId ? <OfficerChip keycloakUserId={c.registeredByOfficerId} /> : <span style={{ color: C.charcoal }}>Online</span>}</td>}
                 <td style={td}><StatusBadge status={c.status} size="sm" /></td>
                 <td style={td}>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -148,7 +159,7 @@ export function ComplaintsInbox() {
               </tr>
             ))}
             {complaints.length === 0 && (
-              <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No complaints.</td></tr>
+              <tr><td colSpan={isAdmin ? 8 : 6} style={{ ...td, textAlign: 'center', color: C.charcoal, padding: 32 }}>No complaints.</td></tr>
             )}
           </tbody>
         </table>

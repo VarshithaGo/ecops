@@ -68,6 +68,10 @@ export const caseApi = {
     api.put(`/ncr/${id}/refer-magistrate`).then((r) => r.data),
   magistrateOrderNcr: (id: string, notes?: string) =>
     api.put(`/ncr/${id}/magistrate-order`, { notes }).then((r) => r.data),
+  beginNcrInvestigation: (id: string, ioOfficerId?: string) =>
+    api.put(`/ncr/${id}/begin-investigation`, { ioOfficerId }).then((r) => r.data),
+  closeNcr: (id: string, data: { outcome: string; findings?: string }) =>
+    api.put(`/ncr/${id}/close`, data).then((r) => r.data),
 
   // Warrants
   requestWarrant: (data: unknown) => api.post('/warrants', data).then((r) => r.data),

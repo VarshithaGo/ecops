@@ -6,6 +6,6 @@ import { capabilitiesFor, Capability } from '../utils/rank'
 export function useCapabilities() {
   const { roles } = useAuth()
   const { rank } = useCurrentOfficer()
-  const caps = capabilitiesFor(roles, rank)
+  const caps = capabilitiesFor(roles, rank ?? undefined)
   return { can: (c: Capability) => caps.has(c), rank }
 }

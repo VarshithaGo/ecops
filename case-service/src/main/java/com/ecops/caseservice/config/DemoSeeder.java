@@ -38,6 +38,7 @@ public class DemoSeeder implements CommandLineRunner {
     private static final String STATION_CODE = "BLR-KOR";
     private static final String STATION_ID   = "a1a1a1a1-0000-0000-0000-000000000001";
     private static final String OFFICER_ID   = "11111111-1111-1111-1111-111111111111";
+    private static final String MAGISTRATE_ID = "22222222-2222-2222-2222-222222222222";
 
     private final FirRepository firRepo;
     private final ComplaintRepository complaintRepo;
@@ -135,11 +136,29 @@ public class DemoSeeder implements CommandLineRunner {
         filed("0005", "George Mathew", "9611024680", "No. 5, 100 Feet Road, Indiranagar",
                 "Pickpocketing at a crowded market.", 3, "Indiranagar");
 
-        // NCR entries (non-cognizable), linked to their complaints.
+        // NCR entries (non-cognizable), linked to their complaints — spread across the §174 lifecycle.
         ncr("0006", "Prakash Rao", "Neighbour dispute over parking; minor altercation.", "OPEN");
         ncr("0007", "Fatima Bi", "Public nuisance and verbal abuse by a tenant.", "OPEN");
         ncr("0008", "Joseph D'Souza", "Loss of documents reported for record.", "REFERRED_TO_MAGISTRATE");
         ncr("0009", "Harish Gupta", "Minor property damage during a festival procession.", "OPEN");
+
+        // Magistrate has ordered investigation — station must now depute an IO and begin.
+        NcrEntry ordered = ncr("0010", "Ramesh Iyer",
+                "Defamatory notices put up in the apartment lobby; magistrate directed an enquiry.", "MAGISTRATE_ORDERED");
+        ordered.setMagistrateId(MAGISTRATE_ID);
+        ordered.setMagistrateOrderNotes("Investigate under BNSS §174(3) and file a report.");
+        ordered.setMagistrateOrderedAt(OffsetDateTime.now().minusDays(1));
+        ncrRepo.save(ordered);
+
+        // Already under investigation — IO assigned, awaiting closure.
+        NcrEntry inv = ncr("0011", "Sita Raman",
+                "Persistent nuisance by a roadside vendor; enquiry in progress.", "UNDER_INVESTIGATION");
+        inv.setMagistrateId(MAGISTRATE_ID);
+        inv.setMagistrateOrderNotes("Enquire and report within 30 days.");
+        inv.setMagistrateOrderedAt(OffsetDateTime.now().minusDays(4));
+        inv.setAssignedIoOfficerId(OFFICER_ID);
+        ncrRepo.save(inv);
+
         log.info("[DemoSeeder] Seeded complaints + NCR entries.");
     }
 
@@ -153,13 +172,13 @@ public class DemoSeeder implements CommandLineRunner {
                 .status("FILED").build());
     }
 
-    private void ncr(String suffix, String name, String description, String ncrStatus) {
+    private NcrEntry ncr(String suffix, String name, String description, String ncrStatus) {
         Complaint c = complaintRepo.save(Complaint.builder()
                 .complaintNumber("COMP-DEMO-" + suffix).stationId(STATION_ID).isWalkIn(true)
                 .walkInName(name).registeredByOfficerId(OFFICER_ID).description(description)
                 .incidentDate(LocalDate.now().minusDays(5)).incidentLocation("Bengaluru")
                 .status("LOGGED_IN_NCR").build());
-        ncrRepo.save(NcrEntry.builder()
+        return ncrRepo.save(NcrEntry.builder()
                 .ncrNumber("NCR-DEMO-" + suffix).complaint(c).recordedByOfficerId(OFFICER_ID)
                 .stationId(STATION_ID).form76aIssued(true).form76aIssuedAt(OffsetDateTime.now())
                 .status(ncrStatus).remarks("Form 76-A issued; complainant advised to approach the Magistrate.")

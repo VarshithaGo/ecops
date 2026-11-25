@@ -1,6 +1,7 @@
 package com.ecops.caseservice.service;
 
 import com.ecops.caseservice.client.InternalServiceClient;
+import com.ecops.caseservice.dto.NcrResponse;
 import com.ecops.caseservice.entity.*;
 import com.ecops.caseservice.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Year;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -107,45 +109,11 @@ public class CaseWorkflowService {
         c.setCategorizedAt(OffsetDateTime.now());
 
         if ("COGNIZABLE".equals(offenseType)) {
-            Map<String, Object> officer = internalClient.getOfficerDetails(officerUserId);
-            String officerStationId = String.valueOf(officer.get("stationId"));
-            if (!officerStationId.equals(c.getStationId().toString())) {
-                throw new IllegalStateException(
-                    "Officer is not assigned to this complaint's station. " +
-                    "For cross-station registration contact the SHO.");
-            }
-            String stationCode = (String) officer.get("stationCode");
-            if (stationCode == null) {
-                throw new IllegalStateException("Officer has no station assignment");
-            }
-
-            String firNumber = generateFirNumber(stationCode);
-            Fir fir = Fir.builder()
-                    .firNumber(firNumber)
-                    .complaint(c)
-                    .stationId(c.getStationId())
-                    .stationCode(stationCode)
-                    .registeredByOfficerId(officerUserId)
-                    .ipcSections("PENDING")
-                    .narrative(c.getDescription())
-                    .status("REGISTERED")
-                    .freeCopyIssued(false)
-                    .isZeroFir(isZeroFir)
-                    .build();
-            firRepo.save(fir);
-
-            c.setStatus("CONVERTED_TO_FIR");
-            complaintRepo.save(c);
-
-            auditService.record("FIR", fir.getId(), fir.getId(), officerUserId, ROLE_OFFICER,
-                    isZeroFir ? "ZERO_FIR_REGISTERED" : "FIR_REGISTERED", "FILED", "REGISTERED",
-                    firNumber + " registered from complaint " + c.getComplaintNumber()
-                            + " (cognizable offence)");
-
+            Fir fir = registerFirFromComplaint(c, officerUserId, isZeroFir);
             String message = isZeroFir
                     ? "Zero FIR registered (BNSS 173(1)). Transfer to the competent station is required."
                     : "FIR registered. Complainant is entitled to a free copy of this FIR.";
-            return new CategorizeResult("COGNIZABLE", firNumber, message, null, isZeroFir);
+            return new CategorizeResult("COGNIZABLE", fir.getFirNumber(), message, null, isZeroFir);
         } else {
             String ncrNumber = generateNcrNumber(c.getStationId());
             NcrEntry ncr = NcrEntry.builder()
@@ -170,6 +138,49 @@ public class CaseWorkflowService {
             return new CategorizeResult("NON_COGNIZABLE", null,
                     "Form 76-A has been recorded. Complainant should approach the Magistrate.", ncrNumber, false);
         }
+    }
+
+    /**
+     * Registers an FIR from a complaint (cognizable path). Shared by {@link #categorize}
+     * and by NCR §174(4) escalation. Validates the acting officer is posted to the
+     * complaint's station and marks the complaint CONVERTED_TO_FIR.
+     */
+    private Fir registerFirFromComplaint(Complaint c, String officerUserId, boolean isZeroFir) {
+        Map<String, Object> officer = internalClient.getOfficerDetails(officerUserId);
+        String officerStationId = String.valueOf(officer.get("stationId"));
+        if (!officerStationId.equals(c.getStationId().toString())) {
+            throw new IllegalStateException(
+                "Officer is not assigned to this complaint's station. " +
+                "For cross-station registration contact the SHO.");
+        }
+        String stationCode = (String) officer.get("stationCode");
+        if (stationCode == null) {
+            throw new IllegalStateException("Officer has no station assignment");
+        }
+
+        String firNumber = generateFirNumber(stationCode);
+        Fir fir = Fir.builder()
+                .firNumber(firNumber)
+                .complaint(c)
+                .stationId(c.getStationId())
+                .stationCode(stationCode)
+                .registeredByOfficerId(officerUserId)
+                .ipcSections("PENDING")
+                .narrative(c.getDescription())
+                .status("REGISTERED")
+                .freeCopyIssued(false)
+                .isZeroFir(isZeroFir)
+                .build();
+        firRepo.save(fir);
+
+        c.setStatus("CONVERTED_TO_FIR");
+        complaintRepo.save(c);
+
+        auditService.record("FIR", fir.getId(), fir.getId(), officerUserId, ROLE_OFFICER,
+                isZeroFir ? "ZERO_FIR_REGISTERED" : "FIR_REGISTERED", "FILED", "REGISTERED",
+                firNumber + " registered from complaint " + c.getComplaintNumber()
+                        + " (cognizable offence)");
+        return fir;
     }
 
     // ---- Edit a complaint (before categorization) ----
@@ -377,12 +388,50 @@ public class CaseWorkflowService {
         return saved;
     }
 
+    // ---- NCR (non-cognizable) lifecycle — BNSS §174 ----
+
+    /** Read NCRs with complaint content. Officers see only their own station; admins & magistrates see all. */
+    @Transactional(readOnly = true)
+    public List<NcrResponse> listNcr(String userId, String roles) {
+        List<NcrEntry> entries;
+        if (roles != null && (roles.contains("ADMIN") || roles.contains("MAGISTRATE"))) {
+            entries = ncrRepo.findAllWithComplaint();
+        } else {
+            Map<String, Object> officer = internalClient.getOfficerDetails(userId);
+            Object stationId = officer.get("stationId");
+            entries = stationId == null ? List.of()
+                    : ncrRepo.findByStationIdWithComplaint(String.valueOf(stationId));
+        }
+        return entries.stream().map(NcrResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public NcrResponse getNcr(UUID id) {
+        return ncrRepo.findByIdWithComplaint(id).map(NcrResponse::from)
+                .orElseThrow(() -> new EntityNotFoundException("NCR not found: " + id));
+    }
+
     @Transactional
-    public NcrEntry orderNcrInvestigation(UUID ncrId, String magistrateId, String notes) {
+    public NcrResponse referNcrToMagistrate(UUID ncrId, String actorId) {
+        NcrEntry ncr = ncrRepo.findById(ncrId)
+                .orElseThrow(() -> new EntityNotFoundException("NCR not found: " + ncrId));
+        if (!"OPEN".equals(ncr.getStatus())) {
+            throw new IllegalStateException("Only an open NCR can be referred to the Magistrate.");
+        }
+        ncr.setStatus("REFERRED_TO_MAGISTRATE");
+        NcrEntry saved = ncrRepo.save(ncr);
+        auditService.record("NCR", saved.getId(), null, actorId, ROLE_OFFICER,
+                "NCR_REFERRED_TO_MAGISTRATE", "OPEN", "REFERRED_TO_MAGISTRATE",
+                "Referred to Magistrate for directions under BNSS §174(2)");
+        return NcrResponse.from(saved);
+    }
+
+    @Transactional
+    public NcrResponse orderNcrInvestigation(UUID ncrId, String magistrateId, String notes) {
         NcrEntry ncr = ncrRepo.findById(ncrId)
                 .orElseThrow(() -> new EntityNotFoundException("NCR not found: " + ncrId));
         if (!"REFERRED_TO_MAGISTRATE".equals(ncr.getStatus())) {
-            throw new IllegalStateException("NCR must be in REFERRED_TO_MAGISTRATE status");
+            throw new IllegalStateException("NCR must be referred to the Magistrate before an order can be made.");
         }
         ncr.setMagistrateId(magistrateId);
         ncr.setMagistrateOrderNotes(notes);
@@ -391,9 +440,79 @@ public class CaseWorkflowService {
         NcrEntry saved = ncrRepo.save(ncr);
         auditService.record("NCR", saved.getId(), null, magistrateId, ROLE_MAGISTRATE,
                 "NCR_MAGISTRATE_ORDERED", "REFERRED_TO_MAGISTRATE", "MAGISTRATE_ORDERED",
-                "Magistrate ordered investigation (BNSS §174)"
+                "Magistrate ordered investigation (BNSS §174(2))"
                         + (notes != null ? " — " + notes : ""));
-        return saved;
+        return NcrResponse.from(saved);
+    }
+
+    /** Station deputes an IO to investigate (BNSS §174(3)) after the Magistrate's order. */
+    @Transactional
+    public NcrResponse beginNcrInvestigation(UUID ncrId, String ioOfficerId, String actorId) {
+        NcrEntry ncr = ncrRepo.findById(ncrId)
+                .orElseThrow(() -> new EntityNotFoundException("NCR not found: " + ncrId));
+        if (!"MAGISTRATE_ORDERED".equals(ncr.getStatus())) {
+            throw new IllegalStateException(
+                    "Investigation can begin only after the Magistrate orders it (BNSS §174(2)).");
+        }
+        ncr.setAssignedIoOfficerId(ioOfficerId != null && !ioOfficerId.isBlank() ? ioOfficerId : actorId);
+        ncr.setStatus("UNDER_INVESTIGATION");
+        NcrEntry saved = ncrRepo.save(ncr);
+        auditService.record("NCR", saved.getId(), null, actorId, ROLE_OFFICER,
+                "NCR_INVESTIGATION_BEGAN", "MAGISTRATE_ORDERED", "UNDER_INVESTIGATION",
+                "Investigation begun under BNSS §174(3) (cognizable-case powers, no arrest without warrant); IO assigned");
+        return NcrResponse.from(saved);
+    }
+
+    /**
+     * Closes an NCR investigation. Outcome is one of:
+     *   PROSECUTION_REPORT — report filed to the Magistrate under §193 (offence made out);
+     *   NO_OFFENCE — closure/negative report (no offence made out);
+     *   ESCALATED_TO_FIR — §174(4): a cognizable element surfaced, so an FIR is registered
+     *                      from the same complaint and the full cognizable track takes over.
+     */
+    @Transactional
+    public NcrResponse closeNcrInvestigation(UUID ncrId, String outcome, String findings, String actorId) {
+        NcrEntry ncr = ncrRepo.findById(ncrId)
+                .orElseThrow(() -> new EntityNotFoundException("NCR not found: " + ncrId));
+        if (!"UNDER_INVESTIGATION".equals(ncr.getStatus())) {
+            throw new IllegalStateException("Only an NCR under investigation can be closed.");
+        }
+        if (outcome == null || outcome.isBlank()) {
+            throw new IllegalStateException("Select an outcome for the investigation.");
+        }
+        ncr.setInvestigationFindings(findings);
+        ncr.setClosedByOfficerId(actorId);
+        ncr.setClosedAt(OffsetDateTime.now());
+
+        if ("ESCALATED_TO_FIR".equals(outcome)) {
+            Complaint c = ncr.getComplaint();
+            c.setOffenseType("COGNIZABLE");
+            c.setAssignedOfficerId(actorId);
+            c.setCategorizedAt(OffsetDateTime.now());
+            Fir fir = registerFirFromComplaint(c, actorId, false);
+            ncr.setEscalatedFirId(fir.getId());
+            ncr.setOutcome("ESCALATED_TO_FIR");
+            ncr.setStatus("ESCALATED_TO_FIR");
+            NcrEntry saved = ncrRepo.save(ncr);
+            auditService.record("NCR", saved.getId(), fir.getId(), actorId, ROLE_OFFICER,
+                    "NCR_ESCALATED_TO_FIR", "UNDER_INVESTIGATION", "ESCALATED_TO_FIR",
+                    "Cognizable element found during enquiry (BNSS §174(4)); FIR " + fir.getFirNumber()
+                            + " registered from " + (c.getComplaintNumber()));
+            return NcrResponse.from(saved);
+        }
+
+        if (!"PROSECUTION_REPORT".equals(outcome) && !"NO_OFFENCE".equals(outcome)) {
+            throw new IllegalStateException("Unknown outcome: " + outcome);
+        }
+        ncr.setOutcome(outcome);
+        ncr.setStatus("CLOSED");
+        NcrEntry saved = ncrRepo.save(ncr);
+        String detail = "PROSECUTION_REPORT".equals(outcome)
+                ? "Investigation complete; report filed to the Magistrate under BNSS §193 recommending prosecution."
+                : "Investigation complete; closure report filed — no offence made out.";
+        auditService.record("NCR", saved.getId(), null, actorId, ROLE_OFFICER,
+                "NCR_CLOSED", "UNDER_INVESTIGATION", "CLOSED", detail);
+        return NcrResponse.from(saved);
     }
 
     // ---- Charge Sheet ----

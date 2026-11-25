@@ -236,7 +236,7 @@ function ActionRequiredPanel({ items }: { items: DashboardActionItem[] }) {
 }
 
 export function Dashboard() {
-  const { roles, username } = useAuth()
+  const { roles } = useAuth()
   const { can } = useCapabilities()
 
   const baseSections = roles.includes(ROLES.ADMIN)      ? adminSections()
