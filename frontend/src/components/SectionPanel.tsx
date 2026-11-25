@@ -1,6 +1,5 @@
 import { useState, ReactNode } from 'react'
-
-import { C } from '../theme'
+import { C, A, FONT } from '../theme'
 
 interface SectionPanelProps {
   title: string
@@ -11,17 +10,15 @@ interface SectionPanelProps {
   defaultOpen?: boolean
 }
 
-export function SectionPanel({ title, count, children, addLabel, addForm, defaultOpen = true }: SectionPanelProps) {
+export function SectionPanel({ title, children, addLabel, addForm, defaultOpen = true }: SectionPanelProps) {
   const [open, setOpen] = useState(defaultOpen)
   const [showForm, setShowForm] = useState(false)
 
   return (
-    <div style={{ border: `2px solid ${C.charcoal}`, borderRadius: 4, marginBottom: 16, overflow: 'hidden', backdropFilter: 'blur(8px)', background: `${C.kite}99` }}>
-      <div onClick={() => setOpen((v) => !v)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: C.bark, cursor: 'pointer', userSelect: 'none', borderBottom: open ? `2px solid ${C.charcoal}` : 'none' }}>
-        <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 14, letterSpacing: '0.08em', color: C.ashes }}>
-          {title}
-        </span>
-        <span style={{ fontSize: 11, color: C.charcoal }}>{open ? '▲' : '▼'}</span>
+    <div style={{ border: `1px solid ${C.bark}`, borderRadius: 10, marginBottom: 16, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(16,32,44,0.06)', fontFamily: FONT.ui }}>
+      <div onClick={() => setOpen((v) => !v)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: '#F7F9FC', cursor: 'pointer', userSelect: 'none', borderBottom: open ? `1px solid ${C.bark}` : 'none' }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: C.ashes }}>{title}</span>
+        <span style={{ fontSize: 12, color: C.charcoal }}>{open ? '▲' : '▼'}</span>
       </div>
 
       {open && (
@@ -31,14 +28,14 @@ export function SectionPanel({ title, count, children, addLabel, addForm, defaul
             <div style={{ marginTop: 14 }}>
               {!showForm ? (
                 <button onClick={(e) => { e.stopPropagation(); setShowForm(true) }}
-                  style={{ padding: '8px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, cursor: 'pointer' }}>
-                  + {addLabel.toUpperCase()}
+                  style={{ padding: '9px 18px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: A.accent, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                  + {addLabel}
                 </button>
               ) : (
-                <div style={{ marginTop: 12, padding: '18px 20px', background: `${C.angst}bb`, borderRadius: 4, border: `2px solid ${C.bark}` }}>
+                <div style={{ marginTop: 12, padding: '18px 20px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
                   {addForm}
                   <button onClick={() => setShowForm(false)}
-                    style={{ marginTop: 10, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 12, color: C.charcoal, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    style={{ marginTop: 10, fontFamily: FONT.ui, fontSize: 13, color: C.charcoal, background: 'none', border: 'none', cursor: 'pointer' }}>
                     Cancel
                   </button>
                 </div>

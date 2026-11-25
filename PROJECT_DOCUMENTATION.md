@@ -2,7 +2,7 @@
 
 A Police Station Management System for the Indian context, implementing the **BNSS 2023 / CrPC** complaint-to-court workflow. Built as Spring Boot microservices behind an API gateway, with Keycloak auth, PostgreSQL per service, and a React + TypeScript frontend. Runs locally on Minikube.
 
-> Companion docs: **[BUSINESS_LOGIC.md](BUSINESS_LOGIC.md)** (workflow rules) · **[TESTING.md](TESTING.md)** (test plan + status) · **[QUICKSTART.md](QUICKSTART.md)** (run it).
+> Companion docs: **[FLOW.md](FLOW.md)** (real-life workflow & roles) · **[BUSINESS_LOGIC.md](BUSINESS_LOGIC.md)** (workflow rules) · **[TESTING.md](TESTING.md)** (test plan + status) · **[QUICKSTART.md](QUICKSTART.md)** (run it).
 
 ---
 

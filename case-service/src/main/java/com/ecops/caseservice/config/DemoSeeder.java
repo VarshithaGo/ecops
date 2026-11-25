@@ -90,6 +90,12 @@ public class DemoSeeder implements CommandLineRunner {
                 "Criminal intimidation via phone; IO to be assigned.");
         seedFir("0010", 2, "REGISTERED", "BNS 305", null,
                 "Theft of mobile phone; FIR just registered.");
+
+        // Most cases already had the accused produced before court — so the §187 (24h)
+        // notification highlights only one live case (FIR-DEMO-0003), not every seeded FIR.
+        em.createNativeQuery("UPDATE firs SET remand_court_name = 'JMFC Bengaluru Urban', produced_at_court_at = now() " +
+                "WHERE fir_number LIKE 'FIR-DEMO-%' AND fir_number <> 'FIR-DEMO-0003'").executeUpdate();
+
         log.info("[DemoSeeder] Seeded 10 demo FIRs.");
     }
 

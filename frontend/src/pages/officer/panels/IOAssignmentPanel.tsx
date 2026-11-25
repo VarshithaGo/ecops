@@ -10,7 +10,7 @@ import { caseApi } from '../../../api/caseApi'
 import { stationsApi } from '../../../api/stationsApi'
 import { fmtDateTime } from '../../../utils/date'
 
-import { C } from '../../../theme'
+import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
 interface Props {
   firId: string
@@ -48,13 +48,13 @@ export function IOAssignmentPanel({ firId, assignments, stationCode }: Props) {
   })
 
   const form = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontFamily: FONT.ui }}>
       <div>
-        <label style={{ display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }}>
+        <label style={{ display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }}>
           Select Investigating Officer
         </label>
         <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}
-          style={{ padding: '10px 14px', background: C.bark, color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, width: '100%', outline: 'none' }}>
+          style={{ padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }}>
           <option value="">— choose an officer —</option>
           {stationOfficers.map((o) => (
             <option key={o.keycloakUserId} value={o.keycloakUserId}>
@@ -63,27 +63,26 @@ export function IOAssignmentPanel({ firId, assignments, stationCode }: Props) {
           ))}
         </select>
         {station && stationOfficers.length === 0 && (
-          <div style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 11, color: C.charcoal, marginTop: 6 }}>
+          <div style={{ fontFamily: FONT.ui, fontSize: 12, color: C.charcoal, marginTop: 6 }}>
             No active officers found at {stationCode}.
           </div>
         )}
       </div>
       <button onClick={() => assign.mutate()} disabled={!selectedId || assign.isPending}
-        style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: selectedId ? C.ashes : C.charcoal, border: `2px solid ${selectedId ? C.charcoal : C.bark}`, borderRadius: 3, cursor: selectedId ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
-        {assign.isPending ? 'ASSIGNING…' : 'ASSIGN IO'}
+        style={{ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: selectedId ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: selectedId ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
+        {assign.isPending ? 'Assigning…' : 'Assign IO'}
       </button>
-      <style>{`select option { background: ${C.bark}; color: ${C.ashes}; }`}</style>
     </div>
   )
 
   return (
     <SectionPanel title="Investigating Officer (IO)" count={assignments.length} addLabel="Assign IO" addForm={form}>
       {assignments.length === 0 ? (
-        <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>No IO assigned yet.</p>
+        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No IO assigned yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {assignments.map((a) => (
-            <div key={a.id} style={{ padding: '10px 14px', background: `${C.angst}66`, borderRadius: 3, border: `1px solid ${C.bark}` }}>
+            <div key={a.id} style={{ padding: '12px 14px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
               <DetailRow label="IO Officer" value={<OfficerChip keycloakUserId={a.ioOfficerId} />} />
               <DetailRow label="Assigned By" value={<OfficerChip keycloakUserId={a.assignedByOfficerId} />} />
               <DetailRow label="Assigned At" value={fmtDateTime(a.assignedAt)} />

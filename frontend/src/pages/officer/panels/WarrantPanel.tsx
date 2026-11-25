@@ -7,9 +7,9 @@ import { ArrestWarrant } from '../../../types/case.types'
 import { caseApi } from '../../../api/caseApi'
 import { fmtDateTime } from '../../../utils/date'
 
-import { C } from '../../../theme'
-const inp: React.CSSProperties = { padding: '10px 14px', background: C.bark, color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, width: '100%', boxSizing: 'border-box', outline: 'none' }
-const lbl: React.CSSProperties = { display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }
+import { C, A, FONT, FIELD_BORDER } from '../../../theme'
+const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
+const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
 
 interface Props { firId: string; warrants: ArrestWarrant[] }
 
@@ -36,24 +36,23 @@ export function WarrantPanel({ firId, warrants }: Props) {
   const addForm = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div><label style={lbl}>Accused Name</label><input value={f.accusedName} onChange={set('accusedName')} style={inp} /></div>
-      <div><label style={lbl}>Accused Description <span style={{ opacity: 0.6 }}>(optional)</span></label><input value={f.accusedDescription} onChange={set('accusedDescription')} style={inp} placeholder="Physical description, alias…" /></div>
+      <div><label style={lbl}>Accused Description <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={f.accusedDescription} onChange={set('accusedDescription')} style={inp} placeholder="Physical description, alias…" /></div>
       <div><label style={lbl}>Reason for Warrant</label><textarea rows={3} value={f.reason} onChange={set('reason')} style={{ ...inp, resize: 'vertical' }} /></div>
       <button onClick={() => request.mutate()} disabled={!canRequest}
-        style={{ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: canRequest ? C.ashes : C.charcoal, border: `2px solid ${canRequest ? C.charcoal : C.bark}`, borderRadius: 3, cursor: canRequest ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
+        style={{ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: canRequest ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: canRequest ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
         {request.isPending ? 'REQUESTING…' : 'REQUEST WARRANT'}
       </button>
-      <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>
   )
 
   return (
     <SectionPanel title="Arrest Warrants" addLabel="Request Warrant" addForm={addForm}>
       {warrants.length === 0 ? (
-        <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>No warrants issued for this FIR.</p>
+        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No warrants issued for this FIR.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {warrants.map((w) => (
-            <div key={w.id} style={{ padding: '10px 14px', background: `${C.angst}66`, borderRadius: 3, border: `1px solid ${C.bark}` }}>
+            <div key={w.id} style={{ padding: '12px 14px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
               <DetailRow label="Accused" value={w.accusedName} />
               {w.accusedDescription && <DetailRow label="Description" value={w.accusedDescription} />}
               <DetailRow label="Reason" value={w.reason} />
@@ -65,13 +64,13 @@ export function WarrantPanel({ firId, warrants }: Props) {
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   {w.status === 'ISSUED' && (
                     <button onClick={() => execute.mutate(w.id)} disabled={execute.isPending}
-                      style={{ padding: '5px 14px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 10, letterSpacing: '0.1em', background: 'transparent', color: '#a78bfa', border: '1.5px solid #a78bfa', borderRadius: 3, cursor: 'pointer' }}>
-                      MARK EXECUTED
+                      style={{ padding: '6px 14px', fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                      Mark executed
                     </button>
                   )}
                   <button onClick={() => { if (window.confirm('Cancel this warrant?')) cancel.mutate(w.id) }} disabled={cancel.isPending}
-                    style={{ padding: '5px 14px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 10, letterSpacing: '0.1em', background: 'transparent', color: '#f87171', border: '1.5px solid #f87171', borderRadius: 3, cursor: 'pointer' }}>
-                    CANCEL WARRANT
+                    style={{ padding: '6px 14px', fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, background: '#fff', color: '#B91C1C', border: '1px solid #B91C1C66', borderRadius: 6, cursor: 'pointer' }}>
+                    Cancel warrant
                   </button>
                 </div>
               )}

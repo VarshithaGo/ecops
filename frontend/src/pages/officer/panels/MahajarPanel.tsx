@@ -6,10 +6,10 @@ import { OfficerChip } from '../../../components/OfficerChip'
 import { MahajarReport } from '../../../types/case.types'
 import { caseApi } from '../../../api/caseApi'
 
-import { C } from '../../../theme'
-const inp: React.CSSProperties = { padding: '10px 14px', background: C.bark, color: C.ashes, border: `2px solid ${C.charcoal}`, borderRadius: 3, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, width: '100%', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }
-const lbl: React.CSSProperties = { display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }
-const btn = (enabled: boolean): React.CSSProperties => ({ padding: '9px 20px', fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.12em', background: 'transparent', color: enabled ? C.ashes : C.charcoal, border: `2px solid ${enabled ? C.charcoal : C.bark}`, borderRadius: 3, cursor: enabled ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' })
+import { C, A, FONT, FIELD_BORDER } from '../../../theme'
+const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
+const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
+const btn = (enabled: boolean): React.CSSProperties => ({ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: enabled ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: enabled ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' })
 
 interface Props { firId: string; reports: MahajarReport[] }
 
@@ -32,18 +32,17 @@ export function MahajarPanel({ firId, reports }: Props) {
       <button onClick={() => record.mutate()} disabled={!f.visitDate || !f.locationDescription || !f.observations || record.isPending} style={btn(!(!f.visitDate || !f.locationDescription || !f.observations || record.isPending))}>
         {record.isPending ? 'SAVING…' : 'SAVE MAHAZAR'}
       </button>
-      <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>
   )
 
   return (
     <SectionPanel title="Mahazar (Scene Inspection)" addLabel="Record Mahazar" addForm={addForm}>
       {reports.length === 0 ? (
-        <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal, fontSize: 13 }}>No scene inspections recorded.</p>
+        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No scene inspections recorded.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {reports.map((r) => (
-            <div key={r.id} style={{ padding: '10px 14px', background: `${C.angst}66`, borderRadius: 3, border: `1px solid ${C.bark}` }}>
+            <div key={r.id} style={{ padding: '12px 14px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
               <DetailRow label="Visit Date" value={r.visitDate} />
               <DetailRow label="Location" value={r.locationDescription} />
               {r.witnessNames && <DetailRow label="Witnesses" value={r.witnessNames} />}
