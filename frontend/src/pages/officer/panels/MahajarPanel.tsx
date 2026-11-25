@@ -15,19 +15,20 @@ interface Props { firId: string; reports: MahajarReport[] }
 
 export function MahajarPanel({ firId, reports }: Props) {
   const qc = useQueryClient()
-  const [f, setF] = useState({ visitDate: '', locationDescription: '', witnessNames: '', observations: '' })
+  const [f, setF] = useState({ visitDate: '', locationDescription: '', witnessNames: '', witnessStatement: '', observations: '' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
 
   const record = useMutation({
     mutationFn: () => caseApi.recordMahajar(firId, f),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-mahajar', firId] }); setF({ visitDate: '', locationDescription: '', witnessNames: '', observations: '' }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-mahajar', firId] }); setF({ visitDate: '', locationDescription: '', witnessNames: '', witnessStatement: '', observations: '' }) },
   })
 
   const addForm = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div><label style={lbl}>Date of Visit</label><input type="date" value={f.visitDate} onChange={set('visitDate')} style={inp} /></div>
       <div><label style={lbl}>Location Description</label><textarea rows={2} value={f.locationDescription} onChange={set('locationDescription')} style={{ ...inp, resize: 'vertical' }} /></div>
-      <div><label style={lbl}>Witness Names <span style={{ opacity: 0.6 }}>(optional)</span></label><input value={f.witnessNames} onChange={set('witnessNames')} style={inp} placeholder="Comma-separated names" /></div>
+      <div><label style={lbl}>Witness Names <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={f.witnessNames} onChange={set('witnessNames')} style={inp} placeholder="Comma-separated names" /></div>
+      <div><label style={lbl}>Witness Statement <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><textarea rows={3} value={f.witnessStatement} onChange={set('witnessStatement')} style={{ ...inp, resize: 'vertical' }} placeholder="What the witness(es) stated at the scene…" /></div>
       <div><label style={lbl}>Observations</label><textarea rows={3} value={f.observations} onChange={set('observations')} style={{ ...inp, resize: 'vertical' }} /></div>
       <button onClick={() => record.mutate()} disabled={!f.visitDate || !f.locationDescription || !f.observations || record.isPending} style={btn(!(!f.visitDate || !f.locationDescription || !f.observations || record.isPending))}>
         {record.isPending ? 'SAVING…' : 'SAVE MAHAZAR'}
@@ -46,6 +47,7 @@ export function MahajarPanel({ firId, reports }: Props) {
               <DetailRow label="Visit Date" value={r.visitDate} />
               <DetailRow label="Location" value={r.locationDescription} />
               {r.witnessNames && <DetailRow label="Witnesses" value={r.witnessNames} />}
+              {r.witnessStatement && <DetailRow label="Witness Statement" value={r.witnessStatement} />}
               <DetailRow label="Observations" value={r.observations} />
               <DetailRow label="Investigating Officer" value={<OfficerChip keycloakUserId={r.ioOfficerId} />} />
             </div>

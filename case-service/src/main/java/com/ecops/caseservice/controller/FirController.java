@@ -41,6 +41,7 @@ public class FirController {
         @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate visitDate,
         @NotBlank String locationDescription,
         String witnessNames,
+        String witnessStatement,
         @NotBlank String observations
     ) {}
 
@@ -149,7 +150,7 @@ public class FirController {
                                        @Valid @RequestBody MahajarRequest req,
                                        @RequestHeader("X-User-Id") String officerId) {
         return workflowService.recordMahajar(id, officerId, req.visitDate(),
-                req.locationDescription(), req.witnessNames(), req.observations());
+                req.locationDescription(), req.witnessNames(), req.witnessStatement(), req.observations());
     }
 
     @GetMapping("/{id}/mahajar")

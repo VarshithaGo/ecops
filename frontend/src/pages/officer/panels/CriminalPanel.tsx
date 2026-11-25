@@ -17,7 +17,7 @@ interface Props { firId: string; criminals: CriminalRecord[] }
 
 export function CriminalPanel({ firId, criminals }: Props) {
   const qc = useQueryClient()
-  const [f, setF] = useState({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'SUSPECT' })
+  const [f, setF] = useState({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'ACCUSED' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
 
   const aadhaarError = !!f.aadhaarRef && !/^\d{12}$/.test(f.aadhaarRef.trim())
@@ -25,7 +25,7 @@ export function CriminalPanel({ firId, criminals }: Props) {
 
   const add = useMutation({
     mutationFn: () => caseApi.addCriminal(firId, { fullName: f.fullName.trim(), dob: f.dob || null, ageAtCrime: f.ageAtCrime ? Number(f.ageAtCrime) : null, gender: f.gender || null, state: f.state, district: f.district, area: f.area || null, aadhaarRef: f.aadhaarRef || null, role: f.role }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-criminals', firId] }); setF({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'SUSPECT' }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-criminals', firId] }); setF({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'ACCUSED' }) },
   })
 
   const canAdd = !!f.fullName.trim() && !!f.state && !!f.district && !aadhaarError && !ageError && !add.isPending
@@ -33,16 +33,7 @@ export function CriminalPanel({ firId, criminals }: Props) {
   const addForm = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontFamily: FONT.ui }}>
       <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 2 }}><label style={lbl}>Full name *</label><input value={f.fullName} onChange={set('fullName')} style={inp} placeholder="Name as recorded" /></div>
-        <div style={{ flex: 1 }}>
-          <label style={lbl}>Role</label>
-          <select value={f.role} onChange={set('role')} style={inp}>
-            <option value="SUSPECT">Suspect</option>
-            <option value="ACCUSED">Accused</option>
-            <option value="WITNESS">Witness</option>
-            <option value="CONVICTED_PERSON">Convicted person</option>
-          </select>
-        </div>
+        <div style={{ flex: 2 }}><label style={lbl}>Accused / suspect name *</label><input value={f.fullName} onChange={set('fullName')} style={inp} placeholder="Name as recorded" /></div>
         <div style={{ flex: 1 }}>
           <label style={lbl}>Gender</label>
           <select value={f.gender} onChange={set('gender')} style={inp}>
@@ -88,21 +79,20 @@ export function CriminalPanel({ firId, criminals }: Props) {
 
       <button onClick={() => add.mutate()} disabled={!canAdd}
         style={{ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: canAdd ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: canAdd ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' }}>
-        {add.isPending ? 'Saving…' : 'Add criminal record'}
+        {add.isPending ? 'Saving…' : 'Add accused / suspect'}
       </button>
     </div>
   )
 
   return (
-    <SectionPanel title="Criminal Records" addLabel="Add Criminal Record" addForm={addForm}>
+    <SectionPanel title="Suspect / Accused Record" addLabel="Add Accused / Suspect" addForm={addForm}>
       {criminals.length === 0 ? (
-        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No criminal records linked to this FIR.</p>
+        <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No suspects or accused recorded for this FIR yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {criminals.map((c) => (
             <div key={c.id} style={{ padding: '12px 14px', background: C.angst, borderRadius: 8, border: `1px solid ${C.bark}` }}>
               <DetailRow label="Name" value={c.fullName} />
-              <DetailRow label="Role" value={c.role.replace(/_/g, ' ')} />
               {c.gender && <DetailRow label="Gender" value={c.gender} />}
               {c.dob && <DetailRow label="DOB" value={c.dob} />}
               {c.ageAtCrime !== null && <DetailRow label="Age at Crime" value={c.ageAtCrime} />}

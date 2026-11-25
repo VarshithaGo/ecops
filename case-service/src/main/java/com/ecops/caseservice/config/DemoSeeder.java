@@ -112,10 +112,10 @@ public class DemoSeeder implements CommandLineRunner {
 
         UUID id = fir.getId();
         auditService.record("FIR", id, id, OFFICER_ID, "POLICE_OFFICER",
-                "FIR_REGISTERED", "FILED", "REGISTERED", firNumber + " registered (demo data)");
+                "FIR_REGISTERED", "FILED", "REGISTERED", firNumber + " registered");
         if (!"REGISTERED".equals(status)) {
             auditService.record("FIR", id, id, OFFICER_ID, "POLICE_OFFICER",
-                    "IO_ASSIGNED", "REGISTERED", "UNDER_INVESTIGATION", "Investigating Officer assigned (demo data)");
+                    "IO_ASSIGNED", "REGISTERED", "UNDER_INVESTIGATION", "Investigating Officer assigned");
         }
     }
 
@@ -228,6 +228,6 @@ public class DemoSeeder implements CommandLineRunner {
                 .fir(fir).requestedByOfficerId(OFFICER_ID).accusedName(accused)
                 .accusedDescription("Accused in " + fir.getFirNumber()).reason(reason).status(status).build());
         auditService.record("WARRANT", w.getId(), fir.getId(), OFFICER_ID, "POLICE_OFFICER",
-                "WARRANT_REQUESTED", null, "PENDING", "Arrest warrant requested for " + accused + " (demo data)");
+                "WARRANT_REQUESTED", null, "PENDING", "Arrest warrant requested for " + accused);
     }
 }

@@ -192,7 +192,6 @@ export default function FIRDetail() {
       {can('INVESTIGATE') && <CriminalPanel firId={firId} criminals={criminals} />}
       {can('DISPOSE') && <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} />}
       <CaseTimeline events={auditEvents} />
-      <CaseTimeline events={auditEvents} />
       <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>
   )

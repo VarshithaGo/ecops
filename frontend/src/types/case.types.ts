@@ -47,6 +47,7 @@ export interface MahajarReport {
   visitDate: string
   locationDescription: string
   witnessNames: string | null
+  witnessStatement: string | null
   observations: string
   createdAt: string
 }

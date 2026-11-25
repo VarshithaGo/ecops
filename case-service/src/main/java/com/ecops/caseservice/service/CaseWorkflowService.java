@@ -199,7 +199,7 @@ public class CaseWorkflowService {
     @Transactional
     public MahajarReport recordMahajar(UUID firId, String ioOfficerId,
                                        LocalDate visitDate, String locationDesc,
-                                       String witnessNames, String observations) {
+                                       String witnessNames, String witnessStatement, String observations) {
         Fir fir = findFirOrThrow(firId);
         MahajarReport m = MahajarReport.builder()
                 .fir(fir)
@@ -207,6 +207,7 @@ public class CaseWorkflowService {
                 .visitDate(visitDate)
                 .locationDescription(locationDesc)
                 .witnessNames(witnessNames)
+                .witnessStatement(witnessStatement)
                 .observations(observations)
                 .build();
         MahajarReport saved = mahajarRepo.save(m);

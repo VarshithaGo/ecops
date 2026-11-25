@@ -23,12 +23,10 @@ const REPORT_TYPES = [
 
 const VERDICT_COLOR: Record<string, string> = { CONVICTED: '#B91C1C', ACQUITTED: '#15803D', DISCHARGED: '#B45309' }
 
-type FormMode = 'charge-sheet' | 'final-report'
 interface Props { firId: string; chargeSheet: ChargeSheet | null; finalReport: FinalReport | null }
 
 export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
   const qc = useQueryClient()
-  const [mode, setMode] = useState<FormMode>('charge-sheet')
   const [cs, setCs] = useState({ courtName: '', submissionDate: '', accusedDetails: '', evidenceSummary: '', witnessList: '', sectionsInvoked: '' })
   const [fr, setFr] = useState({ reportType: 'A', courtName: '', submissionDate: '', remarks: '' })
   const setFrField = (k: keyof typeof fr) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setFr((p) => ({ ...p, [k]: e.target.value }))
@@ -106,21 +104,21 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
     )
   }
 
-  const toggle = (m: FormMode, label: string) => (
-    <button key={m} onClick={() => setMode(m)}
-      style={{ padding: '8px 16px', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, background: mode === m ? A.accentSoft : '#fff', color: mode === m ? A.accent : C.charcoal, border: `1px solid ${mode === m ? A.accent : C.bark}`, borderRadius: 8, cursor: 'pointer' }}>
-      {label}
-    </button>
-  )
-
   const addForm = (
     <div style={{ fontFamily: FONT.ui }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {toggle('charge-sheet', 'Charge Sheet')}
-        {toggle('final-report', 'Final Report (A/B/C)')}
+      <div style={{ marginBottom: 14 }}>
+        <label style={lbl}>Report type</label>
+        <select value={fr.reportType} onChange={setFrField('reportType')} style={inp}>
+          {REPORT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+        <div style={{ fontSize: 12, color: C.charcoal, marginTop: 4 }}>
+          {fr.reportType === 'A'
+            ? 'Report A = charge sheet — the case goes to court for trial.'
+            : 'Reports B / C close the case (no trial).'}
+        </div>
       </div>
 
-      {mode === 'charge-sheet' && (
+      {fr.reportType === 'A' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 2 }}><label style={lbl}>Court name</label><input value={cs.courtName} onChange={setCsField('courtName')} style={inp} /></div>
@@ -132,27 +130,19 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
           <div><label style={lbl}>Witness list <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={cs.witnessList} onChange={setCsField('witnessList')} style={inp} /></div>
           {fileCs.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13 }}>{apiError(fileCs.error, 'Could not file the charge sheet.')}</div>}
           <button onClick={() => fileCs.mutate()} disabled={!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked || fileCs.isPending} style={{ ...btnPrimary, background: (!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked) ? '#9DB2CC' : A.accent }}>
-            {fileCs.isPending ? 'Filing…' : 'File charge sheet'}
+            {fileCs.isPending ? 'Filing…' : 'File charge sheet (Report A)'}
           </button>
         </div>
-      )}
-
-      {mode === 'final-report' && (
+      ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={lbl}>Report type</label>
-            <select value={fr.reportType} onChange={setFrField('reportType')} style={inp}>
-              {REPORT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 2 }}><label style={lbl}>Court name</label><input value={fr.courtName} onChange={setFrField('courtName')} style={inp} /></div>
             <div style={{ flex: 1 }}><label style={lbl}>Submission date</label><input type="date" value={fr.submissionDate} onChange={setFrField('submissionDate')} style={inp} /></div>
           </div>
-          <div><label style={lbl}>Remarks</label><textarea rows={3} value={fr.remarks} onChange={setFrField('remarks')} style={{ ...inp, resize: 'vertical' }} /></div>
+          <div><label style={lbl}>Remarks</label><textarea rows={3} value={fr.remarks} onChange={setFrField('remarks')} style={{ ...inp, resize: 'vertical' }} placeholder={fr.reportType === 'B' ? 'Why the case is false…' : 'Why the accused could not be traced…'} /></div>
           {fileFr.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13 }}>{apiError(fileFr.error, 'Could not file the final report.')}</div>}
           <button onClick={() => fileFr.mutate()} disabled={!fr.courtName || !fr.submissionDate || !fr.remarks || fileFr.isPending} style={{ ...btnPrimary, background: (!fr.courtName || !fr.submissionDate || !fr.remarks) ? '#9DB2CC' : A.accent }}>
-            {fileFr.isPending ? 'Filing…' : 'File final report'}
+            {fileFr.isPending ? 'Filing…' : `File final report (Report ${fr.reportType})`}
           </button>
         </div>
       )}
@@ -162,7 +152,7 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
   return (
     <SectionPanel title="Final Disposition" addLabel="File Report" addForm={addForm} defaultOpen={false}>
       <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>
-        No final disposition filed. File a Charge Sheet (case goes to court) or a Final Report (A/B/C).
+        No final disposition filed. Pick a report type — A files a charge sheet (goes to court); B / C close the case.
       </p>
     </SectionPanel>
   )

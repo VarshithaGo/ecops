@@ -33,6 +33,9 @@ public class MahajarReport {
     @Column(name = "witness_names", columnDefinition = "TEXT")
     private String witnessNames;
 
+    @Column(name = "witness_statement", columnDefinition = "TEXT")
+    private String witnessStatement;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String observations;
 
