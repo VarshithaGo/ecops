@@ -12,9 +12,9 @@ const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSi
 
 const STATUSES = ['IN_CUSTODY', 'RETURNED', 'COURT_PRODUCED', 'DISPOSED']
 
-interface Props { firId: string; seizures: PropertySeizure[] }
+interface Props { firId: string; seizures: PropertySeizure[]; readOnly?: boolean }
 
-export function PropertyPanel({ firId, seizures }: Props) {
+export function PropertyPanel({ firId, seizures, readOnly }: Props) {
   const qc = useQueryClient()
   const [f, setF] = useState({ propertyDescription: '', quantity: '1', seizureDate: '', storageLocation: '' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
@@ -53,7 +53,7 @@ export function PropertyPanel({ firId, seizures }: Props) {
   )
 
   return (
-    <SectionPanel title="Property Seizures" addLabel="Record Seizure" addForm={addForm}>
+    <SectionPanel title="Property Seizures" addLabel={readOnly ? undefined : 'Record Seizure'} addForm={addForm}>
       {seizures.length === 0 ? (
         <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No property seizures recorded.</p>
       ) : (
@@ -65,6 +65,7 @@ export function PropertyPanel({ firId, seizures }: Props) {
               <DetailRow label="Seizure Date" value={ps.seizureDate} />
               {ps.storageLocation && <DetailRow label="Storage Location" value={ps.storageLocation} />}
               <DetailRow label="Status" value={<StatusBadge status={ps.status} size="sm" />} />
+              {!readOnly && (
               <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {STATUSES.filter((s) => s !== ps.status).map((s) => (
                   <button key={s} onClick={() => updateStatus.mutate({ id: ps.id, status: s })} disabled={updateStatus.isPending}
@@ -73,6 +74,7 @@ export function PropertyPanel({ firId, seizures }: Props) {
                   </button>
                 ))}
               </div>
+              )}
             </div>
           ))}
         </div>

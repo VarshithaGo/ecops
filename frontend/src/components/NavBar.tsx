@@ -28,8 +28,10 @@ export function NavBar() {
   const { officerName, stationName, stationCode, rank } = useCurrentOfficer()
   const { can } = useCapabilities()
   const location = useLocation()
+  const isAdmin = roles.includes(ROLES.ADMIN)
+  // Admin is view-only: they reach every page their role allows, but see no action controls once inside.
   const visible = LINKS.filter((l) =>
-    l.roles.some((r) => roles.includes(r)) && (!l.cap || can(l.cap)))
+    l.roles.some((r) => roles.includes(r)) && (!l.cap || can(l.cap) || isAdmin))
 
   const displayName = officerName || username
 

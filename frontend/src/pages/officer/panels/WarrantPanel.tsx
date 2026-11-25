@@ -11,9 +11,9 @@ import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
 const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
 
-interface Props { firId: string; warrants: ArrestWarrant[] }
+interface Props { firId: string; warrants: ArrestWarrant[]; readOnly?: boolean }
 
-export function WarrantPanel({ firId, warrants }: Props) {
+export function WarrantPanel({ firId, warrants, readOnly }: Props) {
   const qc = useQueryClient()
   const [f, setF] = useState({ accusedName: '', accusedDescription: '', reason: '' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
@@ -46,7 +46,7 @@ export function WarrantPanel({ firId, warrants }: Props) {
   )
 
   return (
-    <SectionPanel title="Arrest Warrants" addLabel="Request Warrant" addForm={addForm}>
+    <SectionPanel title="Arrest Warrants" addLabel={readOnly ? undefined : 'Request Warrant'} addForm={addForm}>
       {warrants.length === 0 ? (
         <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No warrants issued for this FIR.</p>
       ) : (
@@ -60,7 +60,7 @@ export function WarrantPanel({ firId, warrants }: Props) {
               <DetailRow label="Requested At" value={fmtDateTime(w.requestedAt)} />
               {w.decidedAt && <DetailRow label="Decided At" value={fmtDateTime(w.decidedAt)} />}
               {w.decisionNotes && <DetailRow label="Notes" value={w.decisionNotes} />}
-              {(w.status === 'ISSUED' || w.status === 'PENDING') && (
+              {(w.status === 'ISSUED' || w.status === 'PENDING') && !readOnly && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   {w.status === 'ISSUED' && (
                     <button onClick={() => execute.mutate(w.id)} disabled={execute.isPending}

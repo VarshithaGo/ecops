@@ -23,9 +23,9 @@ const REPORT_TYPES = [
 
 const VERDICT_COLOR: Record<string, string> = { CONVICTED: '#B91C1C', ACQUITTED: '#15803D', DISCHARGED: '#B45309' }
 
-interface Props { firId: string; chargeSheet: ChargeSheet | null; finalReport: FinalReport | null }
+interface Props { firId: string; chargeSheet: ChargeSheet | null; finalReport: FinalReport | null; readOnly?: boolean }
 
-export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
+export function FinalReportPanel({ firId, chargeSheet, finalReport, readOnly }: Props) {
   const qc = useQueryClient()
   const [cs, setCs] = useState({ courtName: '', submissionDate: '', accusedDetails: '', evidenceSummary: '', witnessList: '', sectionsInvoked: '' })
   const [fr, setFr] = useState({ reportType: 'A', courtName: '', submissionDate: '', remarks: '' })
@@ -79,12 +79,14 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
           ) : (
             <div>
               <div style={{ fontSize: 13, color: C.charcoal, marginBottom: 10, lineHeight: 1.5 }}>
-                The case has been filed in court. The <strong>verdict is the court's decision</strong>, not the station's — request it below.
+                The case has been filed in court. The <strong>verdict is the court's decision</strong>, not the station's{readOnly ? '.' : ' — request it below.'}
               </div>
+              {!readOnly && <>
               {verdict.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 10 }}>Could not get the verdict. Try again.</div>}
               <button onClick={() => verdict.mutate()} disabled={verdict.isPending} style={{ ...btnPrimary, background: verdict.isPending ? '#9DB2CC' : A.accent }}>
                 {verdict.isPending ? 'Awaiting court…' : 'Request court verdict'}
               </button>
+              </>}
             </div>
           )}
         </div>
@@ -150,7 +152,7 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
   )
 
   return (
-    <SectionPanel title="Final Disposition" addLabel="File Report" addForm={addForm} defaultOpen={false}>
+    <SectionPanel title="Final Disposition" addLabel={readOnly ? undefined : 'File Report'} addForm={addForm} defaultOpen={false}>
       <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>
         No final disposition filed. Pick a report type — A files a charge sheet (goes to court); B / C close the case.
       </p>

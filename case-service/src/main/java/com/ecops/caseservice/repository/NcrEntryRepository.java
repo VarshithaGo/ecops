@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface NcrEntryRepository extends JpaRepository<NcrEntry, UUID> {
     List<NcrEntry> findByStationId(String stationId);
     Optional<NcrEntry> findByNcrNumber(String ncrNumber);
+    Optional<NcrEntry> findByComplaintId(UUID complaintId);
 
     // Fetch-join the complaint so NcrResponse can read its content without a lazy-load.
     @Query("select n from NcrEntry n join fetch n.complaint order by n.createdAt desc")

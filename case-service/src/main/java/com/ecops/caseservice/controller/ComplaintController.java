@@ -108,4 +108,16 @@ public class ComplaintController {
         return workflowService.updateComplaint(id, req.walkInName(), req.walkInPhone(), req.walkInAddress(),
                 req.description(), req.incidentDate(), req.incidentLocation(), officerId);
     }
+
+    public record RecategorizeRequest(@NotBlank String offenseType) {}
+
+    /** Correct a mis-categorization: FIR↔NCR, while the case is still fresh. */
+    @PutMapping("/{id}/recategorize")
+    @PreAuthorize("hasRole('POLICE_OFFICER')")
+    public CaseWorkflowService.CategorizeResult recategorize(
+            @PathVariable UUID id,
+            @Valid @RequestBody RecategorizeRequest req,
+            @RequestHeader("X-User-Id") String officerId) {
+        return workflowService.recategorize(id, req.offenseType(), officerId);
+    }
 }

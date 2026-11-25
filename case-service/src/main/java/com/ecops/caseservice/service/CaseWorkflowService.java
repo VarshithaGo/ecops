@@ -205,6 +205,88 @@ public class CaseWorkflowService {
         return saved;
     }
 
+    /**
+     * Corrects a mis-categorization while the case is still fresh:
+     *   NCR (still OPEN) → COGNIZABLE: the NCR is superseded and an FIR is registered;
+     *   FIR (still REGISTERED, no IO) → NON_COGNIZABLE: the FIR is cancelled and an NCR logged.
+     * Once the case has progressed (NCR referred/ordered, FIR under investigation), this is
+     * blocked — correction then happens through the §174(4) escalation or a Final Report.
+     */
+    @Transactional
+    public CategorizeResult recategorize(UUID complaintId, String newOffenseType, String actorId) {
+        Complaint c = complaintRepo.findById(complaintId)
+                .orElseThrow(() -> new EntityNotFoundException("Complaint not found: " + complaintId));
+        String status = c.getStatus();
+        if (newOffenseType == null || newOffenseType.isBlank()) {
+            throw new IllegalStateException("Choose the correct classification.");
+        }
+
+        if ("LOGGED_IN_NCR".equals(status)) {
+            if (!"COGNIZABLE".equals(newOffenseType)) {
+                throw new IllegalStateException("This complaint is already recorded as non-cognizable (NCR).");
+            }
+            NcrEntry ncr = ncrRepo.findByComplaintId(complaintId)
+                    .orElseThrow(() -> new IllegalStateException("No NCR found for this complaint."));
+            if (!"OPEN".equals(ncr.getStatus())) {
+                throw new IllegalStateException(
+                        "This NCR has already been sent to the Magistrate and cannot be reclassified here. "
+                        + "If a cognizable offence emerges, escalate it during investigation (BNSS §174(4)).");
+            }
+            ncr.setStatus("SUPERSEDED");
+            ncr.setRemarks((ncr.getRemarks() == null ? "" : ncr.getRemarks() + " ")
+                    + "Reclassified as cognizable — superseded by an FIR.");
+            ncrRepo.save(ncr);
+            c.setOffenseType("COGNIZABLE");
+            c.setCategorizedAt(OffsetDateTime.now());
+            Fir fir = registerFirFromComplaint(c, actorId, false);
+            auditService.record("COMPLAINT", c.getId(), fir.getId(), actorId, ROLE_OFFICER,
+                    "COMPLAINT_RECATEGORIZED", "LOGGED_IN_NCR", "CONVERTED_TO_FIR",
+                    "Re-categorized non-cognizable → cognizable; " + ncr.getNcrNumber()
+                            + " superseded, FIR " + fir.getFirNumber() + " registered");
+            return new CategorizeResult("COGNIZABLE", fir.getFirNumber(),
+                    "Re-categorized as cognizable. FIR " + fir.getFirNumber()
+                            + " registered; the NCR has been superseded.", null, false);
+        }
+
+        if ("CONVERTED_TO_FIR".equals(status)) {
+            if (!"NON_COGNIZABLE".equals(newOffenseType)) {
+                throw new IllegalStateException("This complaint is already recorded as cognizable (FIR).");
+            }
+            Fir fir = firRepo.findByComplaintId(complaintId)
+                    .orElseThrow(() -> new IllegalStateException("No FIR found for this complaint."));
+            if (!"REGISTERED".equals(fir.getStatus())) {
+                throw new IllegalStateException(
+                        "FIR " + fir.getFirNumber() + " is already under investigation and cannot be reclassified. "
+                        + "Close it with a Final Report instead.");
+            }
+            fir.setStatus("CANCELLED");
+            firRepo.save(fir);
+
+            String ncrNumber = generateNcrNumber(c.getStationId());
+            NcrEntry ncr = NcrEntry.builder()
+                    .ncrNumber(ncrNumber).complaint(c).recordedByOfficerId(actorId)
+                    .stationId(c.getStationId()).form76aIssued(true).form76aIssuedAt(OffsetDateTime.now())
+                    .status("OPEN")
+                    .remarks("Reclassified from FIR " + fir.getFirNumber()
+                            + " (recorded as non-cognizable); Form 76-A issued.")
+                    .build();
+            ncrRepo.save(ncr);
+
+            c.setOffenseType("NON_COGNIZABLE");
+            c.setStatus("LOGGED_IN_NCR");
+            complaintRepo.save(c);
+            auditService.record("COMPLAINT", c.getId(), null, actorId, ROLE_OFFICER,
+                    "COMPLAINT_RECATEGORIZED", "CONVERTED_TO_FIR", "LOGGED_IN_NCR",
+                    "Re-categorized cognizable → non-cognizable; FIR " + fir.getFirNumber()
+                            + " cancelled, " + ncrNumber + " logged");
+            return new CategorizeResult("NON_COGNIZABLE", null,
+                    "Re-categorized as non-cognizable. FIR " + fir.getFirNumber()
+                            + " cancelled; NCR " + ncrNumber + " logged.", ncrNumber, false);
+        }
+
+        throw new IllegalStateException("Only a categorized complaint (FIR or NCR) can be re-categorized.");
+    }
+
     // ---- IO Assignment ----
 
     @Transactional

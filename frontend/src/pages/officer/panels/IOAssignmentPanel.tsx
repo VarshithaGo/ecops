@@ -16,9 +16,10 @@ interface Props {
   firId: string
   assignments: IoAssignment[]
   stationCode: string
+  readOnly?: boolean
 }
 
-export function IOAssignmentPanel({ firId, assignments, stationCode }: Props) {
+export function IOAssignmentPanel({ firId, assignments, stationCode, readOnly }: Props) {
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState('')
 
@@ -76,7 +77,7 @@ export function IOAssignmentPanel({ firId, assignments, stationCode }: Props) {
   )
 
   return (
-    <SectionPanel title="Investigating Officer (IO)" count={assignments.length} addLabel="Assign IO" addForm={form}>
+    <SectionPanel title="Investigating Officer (IO)" count={assignments.length} addLabel={readOnly ? undefined : 'Assign IO'} addForm={form}>
       {assignments.length === 0 ? (
         <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No IO assigned yet.</p>
       ) : (

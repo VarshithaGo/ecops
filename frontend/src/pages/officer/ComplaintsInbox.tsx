@@ -89,6 +89,23 @@ export function ComplaintsInbox() {
     setEditing(c)
   }
 
+  // Re-categorize a mis-categorized complaint (FIR ↔ NCR), while the case is still fresh.
+  const [recatFor, setRecatFor] = useState<Complaint | null>(null)
+  const recategorize = useMutation({
+    mutationFn: ({ id, offenseType }: { id: string; offenseType: string }) => caseApi.recategorize(id, offenseType),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['complaints'] })
+      qc.invalidateQueries({ queryKey: ['firs'] })
+      qc.invalidateQueries({ queryKey: ['ncr'] })
+      setRecatFor(null)
+    },
+  })
+  // What the complaint is currently recorded as, and what re-categorizing would flip it to.
+  const recatInfo = (c: Complaint) =>
+    c.status === 'CONVERTED_TO_FIR'
+      ? { current: 'cognizable (FIR)', target: 'NON_COGNIZABLE', targetLabel: 'non-cognizable (NCR)', effect: 'The FIR will be cancelled and a fresh NCR logged.' }
+      : { current: 'non-cognizable (NCR)', target: 'COGNIZABLE', targetLabel: 'cognizable (FIR)', effect: 'The NCR will be superseded and an FIR registered.' }
+
   if (isLoading) return (
     <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal }}>Loading...</div>
   )
@@ -130,7 +147,7 @@ export function ComplaintsInbox() {
                 <td style={td}><StatusBadge status={c.status} size="sm" /></td>
                 <td style={td}>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {c.status === 'FILED' && (
+                    {c.status === 'FILED' && can('WALKIN') && (
                       <button
                         onClick={() => openEdit(c)}
                         style={{
@@ -152,6 +169,18 @@ export function ComplaintsInbox() {
                           border: 'none', borderRadius: 6, cursor: 'pointer',
                         }}>
                         Categorize
+                      </button>
+                    )}
+                    {(c.status === 'CONVERTED_TO_FIR' || c.status === 'LOGGED_IN_NCR') && can('CATEGORIZE') && (
+                      <button
+                        onClick={() => setRecatFor(c)}
+                        style={{
+                          padding: '6px 14px', fontFamily: FONT.ui,
+                          fontSize: 13, fontWeight: 600,
+                          background: '#fff', color: '#B45309',
+                          border: '1px solid #B4530966', borderRadius: 6, cursor: 'pointer',
+                        }}>
+                        Re-categorize
                       </button>
                     )}
                   </div>
@@ -342,6 +371,44 @@ export function ComplaintsInbox() {
           </div>
         </div>
       )}
+
+      {/* Re-categorize modal */}
+      {recatFor && (() => {
+        const info = recatInfo(recatFor)
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(16,32,44,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }}>
+            <div style={{ background: '#fff', border: `1px solid ${C.bark}`, borderRadius: 12, padding: 32, width: 500, maxWidth: '100%', boxShadow: '0 24px 60px rgba(16,32,44,0.30)' }}>
+              <h3 style={{ fontFamily: FONT.ui, fontSize: 20, fontWeight: 700, color: C.ashes, margin: '0 0 8px' }}>
+                Re-categorize complaint
+              </h3>
+              <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 13, margin: '0 0 16px', lineHeight: 1.6 }}>
+                <b style={{ color: C.ashes }}>{recatFor.complaintNumber}</b> is currently recorded as <b style={{ color: C.ashes }}>{info.current}</b>.
+                Re-categorize it as <b style={{ color: C.ashes }}>{info.targetLabel}</b>? {info.effect}
+              </p>
+              <div style={{ padding: '10px 14px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 8, fontFamily: FONT.ui, fontSize: 12.5, color: '#92400E', marginBottom: 20, lineHeight: 1.6 }}>
+                Only possible while the case is still fresh — before the NCR goes to the Magistrate or the FIR is under investigation.
+              </div>
+              {recategorize.isError && (
+                <p style={{ fontFamily: FONT.ui, color: '#B91C1C', fontSize: 13, margin: '0 0 14px' }}>
+                  {apiError(recategorize.error, 'Could not re-categorize.')}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => recategorize.mutate({ id: recatFor.id, offenseType: info.target })}
+                  disabled={recategorize.isPending}
+                  style={{ padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: recategorize.isPending ? '#9DB2CC' : A.accent, color: '#fff', border: 'none', borderRadius: 8, cursor: recategorize.isPending ? 'not-allowed' : 'pointer' }}>
+                  {recategorize.isPending ? 'Re-categorizing…' : `Re-categorize as ${info.targetLabel}`}
+                </button>
+                <button onClick={() => setRecatFor(null)}
+                  style={{ padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: '#fff', color: C.ashes, border: `1px solid ${C.charcoal}66`, borderRadius: 8, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

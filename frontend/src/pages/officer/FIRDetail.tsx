@@ -10,6 +10,8 @@ import { DetailRow } from '../../components/DetailRow'
 import { OfficerChip } from '../../components/OfficerChip'
 import { CaseTimeline } from '../../components/CaseTimeline'
 import { useCapabilities } from '../../hooks/useCapabilities'
+import { useAuth } from '../../auth/AuthProvider'
+import { ROLES } from '../../utils/roles'
 import { fmtDateTime } from '../../utils/date'
 import { caseApi } from '../../api/caseApi'
 import { IOAssignmentPanel } from './panels/IOAssignmentPanel'
@@ -33,6 +35,8 @@ export default function FIRDetail() {
   const firId = id!
   const qc = useQueryClient()
   const { can } = useCapabilities()
+  const { roles } = useAuth()
+  const viewer = roles.includes(ROLES.ADMIN)  // admin: read-only oversight view
 
   const { data: fir, isLoading: firLoading, error: firError } = useFIR(firId)
   const { data: ioAssignments = [] } = useIoAssignments(firId)
@@ -123,7 +127,7 @@ export default function FIRDetail() {
         </div>
 
         {/* Court production — 24-hour rule (BNSS 187) */}
-        {!fir.remandCourtName && (
+        {!fir.remandCourtName && !viewer && (
           <div style={{ marginTop: 20, borderTop: `1px solid ${C.bark}`, paddingTop: 16 }}>
             {(() => {
               const hrs = (Date.now() - new Date(fir.registeredAt).getTime()) / 3600000
@@ -161,6 +165,7 @@ export default function FIRDetail() {
                 <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, color: '#fb923c', margin: '0 0 14px', fontWeight: 600 }}>
                   Zero FIR — transfer to competent station required (BNSS 173(1))
                 </p>
+                {!viewer && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 420 }}>
                   <div>
                     <label style={{ display: 'block', fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.charcoal, marginBottom: 6 }}>
@@ -179,18 +184,19 @@ export default function FIRDetail() {
                     {transfer.isPending ? 'TRANSFERRING…' : 'TRANSFER FIR'}
                   </button>
                 </div>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {can('ASSIGN_IO') && <IOAssignmentPanel firId={firId} assignments={ioAssignments} stationCode={fir.stationCode} />}
-      {can('INVESTIGATE') && <MahajarPanel firId={firId} reports={mahajarReports} />}
-      {can('INVESTIGATE') && <PropertyPanel firId={firId} seizures={seizures} />}
-      {can('INVESTIGATE') && <WarrantPanel firId={firId} warrants={warrants} />}
-      {can('INVESTIGATE') && <CriminalPanel firId={firId} criminals={criminals} />}
-      {can('DISPOSE') && <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} />}
+      {(can('ASSIGN_IO') || viewer) && <IOAssignmentPanel firId={firId} assignments={ioAssignments} stationCode={fir.stationCode} readOnly={viewer} />}
+      {(can('INVESTIGATE') || viewer) && <MahajarPanel firId={firId} reports={mahajarReports} readOnly={viewer} />}
+      {(can('INVESTIGATE') || viewer) && <PropertyPanel firId={firId} seizures={seizures} readOnly={viewer} />}
+      {(can('INVESTIGATE') || viewer) && <WarrantPanel firId={firId} warrants={warrants} readOnly={viewer} />}
+      {(can('INVESTIGATE') || viewer) && <CriminalPanel firId={firId} criminals={criminals} readOnly={viewer} />}
+      {(can('DISPOSE') || viewer) && <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} readOnly={viewer} />}
       <CaseTimeline events={auditEvents} />
       <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface FirRepository extends JpaRepository<Fir, UUID>, JpaSpecificationExecutor<Fir> {
     Optional<Fir> findByFirNumber(String firNumber);
+    Optional<Fir> findByComplaintId(UUID complaintId);
     List<Fir> findByStationId(String stationId);
     List<Fir> findByStationIdAndStatus(String stationId, String status);
 }

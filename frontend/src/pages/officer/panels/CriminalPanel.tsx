@@ -13,9 +13,9 @@ const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', col
 const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
 const errText: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, color: '#B91C1C', marginTop: 4 }
 
-interface Props { firId: string; criminals: CriminalRecord[] }
+interface Props { firId: string; criminals: CriminalRecord[]; readOnly?: boolean }
 
-export function CriminalPanel({ firId, criminals }: Props) {
+export function CriminalPanel({ firId, criminals, readOnly }: Props) {
   const qc = useQueryClient()
   const [f, setF] = useState({ fullName: '', dob: '', ageAtCrime: '', gender: '', state: '', district: '', area: '', aadhaarRef: '', role: 'ACCUSED' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
@@ -85,7 +85,7 @@ export function CriminalPanel({ firId, criminals }: Props) {
   )
 
   return (
-    <SectionPanel title="Suspect / Accused Record" addLabel="Add Accused / Suspect" addForm={addForm}>
+    <SectionPanel title="Suspect / Accused Record" addLabel={readOnly ? undefined : 'Add Accused / Suspect'} addForm={addForm}>
       {criminals.length === 0 ? (
         <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No suspects or accused recorded for this FIR yet.</p>
       ) : (

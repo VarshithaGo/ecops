@@ -251,7 +251,7 @@ export function Dashboard() {
     '/officer/ncr': 'CATEGORIZE',
     '/officer/criminals': 'INVESTIGATE',
   }
-  const sections = baseSections.filter((s) => { const c = CAP_BY_PATH[s.to]; return !c || can(c) })
+  const sections = baseSections.filter((s) => { const c = CAP_BY_PATH[s.to]; return !c || can(c) || roles.includes(ROLES.ADMIN) })
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 

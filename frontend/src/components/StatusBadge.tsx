@@ -32,6 +32,7 @@ const COLORS: Record<string, string> = {
   REFERRED_TO_MAGISTRATE: '#7c3aed',
   MAGISTRATE_ORDERED: '#d97706',
   ESCALATED_TO_FIR: '#dc2626',
+  SUPERSEDED: '#6b7280',
   // Criminal record roles/statuses
   NOT_ARRESTED: '#dc2626',
   ARRESTED: '#d97706',

@@ -11,9 +11,9 @@ const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', col
 const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
 const btn = (enabled: boolean): React.CSSProperties => ({ padding: '10px 20px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: enabled ? A.accent : '#9DB2CC', color: '#fff', border: 'none', borderRadius: 8, cursor: enabled ? 'pointer' : 'not-allowed', alignSelf: 'flex-start' })
 
-interface Props { firId: string; reports: MahajarReport[] }
+interface Props { firId: string; reports: MahajarReport[]; readOnly?: boolean }
 
-export function MahajarPanel({ firId, reports }: Props) {
+export function MahajarPanel({ firId, reports, readOnly }: Props) {
   const qc = useQueryClient()
   const [f, setF] = useState({ visitDate: '', locationDescription: '', witnessNames: '', witnessStatement: '', observations: '' })
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((p) => ({ ...p, [k]: e.target.value }))
@@ -37,7 +37,7 @@ export function MahajarPanel({ firId, reports }: Props) {
   )
 
   return (
-    <SectionPanel title="Mahazar (Scene Inspection)" addLabel="Record Mahazar" addForm={addForm}>
+    <SectionPanel title="Mahazar (Scene Inspection)" addLabel={readOnly ? undefined : 'Record Mahazar'} addForm={addForm}>
       {reports.length === 0 ? (
         <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 14 }}>No scene inspections recorded.</p>
       ) : (
