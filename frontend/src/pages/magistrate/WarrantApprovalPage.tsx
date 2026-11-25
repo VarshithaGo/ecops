@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { caseApi } from '../../api/caseApi'
 import { ArrestWarrant, Fir } from '../../types/case.types'
 import { useState } from 'react'
+import { apiError } from '../../utils/apiError'
 import { C, A, FONT, FIELD_BORDER } from '../../theme'
 
 const lbl: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, color: C.charcoal, marginBottom: 2 }
@@ -81,6 +82,7 @@ export function WarrantApprovalPage() {
             <label style={lbl}>Decision notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
             <textarea placeholder="Enter your reasoning or conditions…" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
               style={{ ...inputStyle, resize: 'vertical', margin: '6px 0 20px' }} />
+            {decide.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{apiError(decide.error, 'Could not record the decision.')}</div>}
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => decide.mutate({ id: selected.id, decision: 'ISSUED' })} disabled={decide.isPending}
                 style={{ padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600, background: '#15803D', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>

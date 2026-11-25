@@ -8,6 +8,7 @@ import { useCapabilities } from '../../hooks/useCapabilities'
 import { ROLES } from '../../utils/roles'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
+import { apiError } from '../../utils/apiError'
 
 import { C, A, FONT } from '../../theme'
 
@@ -159,8 +160,8 @@ export function ComplaintsInbox() {
             )}
 
             {categorize.isError && (
-              <p style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", color: '#f87171', fontSize: 13, marginBottom: 12 }}>
-                {(categorize.error as Error)?.message ?? 'Categorization failed.'}
+              <p style={{ fontFamily: FONT.ui, color: '#B91C1C', fontSize: 13, marginBottom: 12 }}>
+                {apiError(categorize.error, 'Categorization failed.')}
               </p>
             )}
 

@@ -6,6 +6,7 @@ import { StatusBadge } from '../../../components/StatusBadge'
 import { StateDistrictSelect } from '../../../components/StateDistrictSelect'
 import { CriminalRecord } from '../../../types/criminal.types'
 import { caseApi } from '../../../api/caseApi'
+import { apiError } from '../../../utils/apiError'
 import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
 const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
@@ -13,11 +14,6 @@ const lbl: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSi
 const errText: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, color: '#B91C1C', marginTop: 4 }
 
 interface Props { firId: string; criminals: CriminalRecord[] }
-
-function apiError(err: unknown): string {
-  const e = err as { response?: { data?: { message?: string; error?: string } } }
-  return e?.response?.data?.message || e?.response?.data?.error || 'Could not save the record. Please try again.'
-}
 
 export function CriminalPanel({ firId, criminals }: Props) {
   const qc = useQueryClient()

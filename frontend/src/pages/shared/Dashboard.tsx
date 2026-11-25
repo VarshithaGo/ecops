@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthProvider'
 import { ROLES } from '../../utils/roles'
 import { useDashboardStats } from '../../hooks/useFIRData'
+import { useCapabilities } from '../../hooks/useCapabilities'
+import { Capability } from '../../utils/rank'
 import { DashboardStats, DashboardActionItem } from '../../types/case.types'
 
 import { C } from '../../theme'
@@ -235,11 +237,21 @@ function ActionRequiredPanel({ items }: { items: DashboardActionItem[] }) {
 
 export function Dashboard() {
   const { roles, username } = useAuth()
+  const { can } = useCapabilities()
 
-  const sections = roles.includes(ROLES.ADMIN)      ? adminSections()
+  const baseSections = roles.includes(ROLES.ADMIN)      ? adminSections()
                  : roles.includes(ROLES.OFFICER)    ? officerSections()
                  : roles.includes(ROLES.MAGISTRATE) ? magistrateSections()
                  : citizenSections()
+  // Hide officer quick-access cards the officer's rank can't use.
+  const CAP_BY_PATH: Partial<Record<string, Capability>> = {
+    '/officer/walk-in': 'WALKIN',
+    '/officer/complaints': 'CATEGORIZE',
+    '/officer/firs': 'INVESTIGATE',
+    '/officer/ncr': 'CATEGORIZE',
+    '/officer/criminals': 'INVESTIGATE',
+  }
+  const sections = baseSections.filter((s) => { const c = CAP_BY_PATH[s.to]; return !c || can(c) })
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 

@@ -4,6 +4,7 @@ import { caseApi } from '../../api/caseApi'
 import { stationsApi } from '../../api/stationsApi'
 import { useNavigate } from 'react-router-dom'
 import { useCurrentOfficer } from '../../hooks/useCurrentOfficer'
+import { apiError } from '../../utils/apiError'
 import { C, A, FONT, FIELD_BORDER, FIELD_BORDER_ERR } from '../../theme'
 
 interface WalkInForm {
@@ -38,10 +39,8 @@ function validate(f: WalkInForm): Errors {
   return e
 }
 
-function apiError(err: unknown): string {
-  const e = err as { response?: { data?: { message?: string; error?: string } } }
-  return e?.response?.data?.message || e?.response?.data?.error ||
-    'Could not register the complaint. Please check the details and try again.'
+function apiErrorMsg(err: unknown): string {
+  return apiError(err, 'Could not register the complaint. Please check the details and try again.')
 }
 
 const label: React.CSSProperties = { display: 'block', fontFamily: FONT.ui, fontSize: 13, fontWeight: 600, color: C.ashes, marginBottom: 6 }
@@ -194,7 +193,7 @@ export function WalkInComplaintPage() {
 
         {mutation.isError && (
           <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '12px 16px', fontSize: 13, marginBottom: 16 }}>
-            {apiError(mutation.error)}
+            {apiErrorMsg(mutation.error)}
           </div>
         )}
 

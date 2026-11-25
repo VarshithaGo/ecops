@@ -5,6 +5,7 @@ import { DetailRow } from '../../../components/DetailRow'
 import { ChargeSheet, FinalReport } from '../../../types/case.types'
 import { caseApi } from '../../../api/caseApi'
 import { useCourtDisposal } from '../../../hooks/useFIRData'
+import { apiError } from '../../../utils/apiError'
 import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
 const inp: React.CSSProperties = { padding: '10px 12px', background: '#fff', color: C.ashes, border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6, fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none' }
@@ -129,6 +130,7 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
           <div><label style={lbl}>Offence brief / accused details</label><textarea rows={3} value={cs.accusedDetails} onChange={setCsField('accusedDetails')} style={{ ...inp, resize: 'vertical' }} placeholder="Detailed brief of the offence and the accused" /></div>
           <div><label style={lbl}>Evidence summary <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><textarea rows={2} value={cs.evidenceSummary} onChange={setCsField('evidenceSummary')} style={{ ...inp, resize: 'vertical' }} /></div>
           <div><label style={lbl}>Witness list <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={cs.witnessList} onChange={setCsField('witnessList')} style={inp} /></div>
+          {fileCs.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13 }}>{apiError(fileCs.error, 'Could not file the charge sheet.')}</div>}
           <button onClick={() => fileCs.mutate()} disabled={!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked || fileCs.isPending} style={{ ...btnPrimary, background: (!cs.courtName || !cs.submissionDate || !cs.accusedDetails || !cs.sectionsInvoked) ? '#9DB2CC' : A.accent }}>
             {fileCs.isPending ? 'Filing…' : 'File charge sheet'}
           </button>
@@ -148,6 +150,7 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport }: Props) {
             <div style={{ flex: 1 }}><label style={lbl}>Submission date</label><input type="date" value={fr.submissionDate} onChange={setFrField('submissionDate')} style={inp} /></div>
           </div>
           <div><label style={lbl}>Remarks</label><textarea rows={3} value={fr.remarks} onChange={setFrField('remarks')} style={{ ...inp, resize: 'vertical' }} /></div>
+          {fileFr.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13 }}>{apiError(fileFr.error, 'Could not file the final report.')}</div>}
           <button onClick={() => fileFr.mutate()} disabled={!fr.courtName || !fr.submissionDate || !fr.remarks || fileFr.isPending} style={{ ...btnPrimary, background: (!fr.courtName || !fr.submissionDate || !fr.remarks) ? '#9DB2CC' : A.accent }}>
             {fileFr.isPending ? 'Filing…' : 'File final report'}
           </button>
