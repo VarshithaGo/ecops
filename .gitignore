@@ -17,3 +17,6 @@ dist/
 # Env / secrets
 .env
 *.local
+
+# Local runtime logs (written by run-local.sh)
+local/logs/
