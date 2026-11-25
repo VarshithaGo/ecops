@@ -27,6 +27,7 @@ export function useCurrentOfficer() {
     stationName: query.data?.stationName,
     stationCode: query.data?.stationCode,
     officerName: query.data?.officerName,
+    rank: query.data?.rank,
     isLoading: query.isLoading && enabled,
     hasAssignment: !!query.data,
   }

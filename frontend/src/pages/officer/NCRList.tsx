@@ -7,6 +7,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
 import { useAuth } from '../../auth/AuthProvider'
 import { useCurrentOfficer } from '../../hooks/useCurrentOfficer'
+import { useCapabilities } from '../../hooks/useCapabilities'
 import { ROLES } from '../../utils/roles'
 import { C, A, FONT } from '../../theme'
 
@@ -27,6 +28,7 @@ export function NCRList() {
   const stationMap = Object.fromEntries(stations.map((s) => [s.id, s.stationCode]))
   const { roles } = useAuth()
   const { stationId: myStationId } = useCurrentOfficer()
+  const { can } = useCapabilities()
   const isAdmin = roles.includes(ROLES.ADMIN)
   // Officers see only their own station's NCRs; admins see all.
   const ncrs = (data ?? []).filter((n) => isAdmin || !myStationId || n.stationId === myStationId)
@@ -75,7 +77,7 @@ export function NCRList() {
                 <td style={td}><StatusBadge status={ncr.status} size="sm" /></td>
                 <td style={{ ...td, color: C.charcoal }}>{fmtDate(ncr.createdAt)}</td>
                 <td style={td}>
-                  {ncr.status === 'OPEN' && (
+                  {ncr.status === 'OPEN' && can('CATEGORIZE') && (
                     <button
                       onClick={() => refer.mutate(ncr.id)}
                       disabled={refer.isPending}

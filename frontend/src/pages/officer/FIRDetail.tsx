@@ -9,6 +9,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { DetailRow } from '../../components/DetailRow'
 import { OfficerChip } from '../../components/OfficerChip'
 import { CaseTimeline } from '../../components/CaseTimeline'
+import { useCapabilities } from '../../hooks/useCapabilities'
 import { fmtDateTime } from '../../utils/date'
 import { caseApi } from '../../api/caseApi'
 import { IOAssignmentPanel } from './panels/IOAssignmentPanel'
@@ -31,6 +32,7 @@ export default function FIRDetail() {
   const { id } = useParams<{ id: string }>()
   const firId = id!
   const qc = useQueryClient()
+  const { can } = useCapabilities()
 
   const { data: fir, isLoading: firLoading, error: firError } = useFIR(firId)
   const { data: ioAssignments = [] } = useIoAssignments(firId)
@@ -183,12 +185,13 @@ export default function FIRDetail() {
         )}
       </div>
 
-      <IOAssignmentPanel firId={firId} assignments={ioAssignments} stationCode={fir.stationCode} />
-      <MahajarPanel firId={firId} reports={mahajarReports} />
-      <PropertyPanel firId={firId} seizures={seizures} />
-      <WarrantPanel firId={firId} warrants={warrants} />
-      <CriminalPanel firId={firId} criminals={criminals} />
-      <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} />
+      {can('ASSIGN_IO') && <IOAssignmentPanel firId={firId} assignments={ioAssignments} stationCode={fir.stationCode} />}
+      {can('INVESTIGATE') && <MahajarPanel firId={firId} reports={mahajarReports} />}
+      {can('INVESTIGATE') && <PropertyPanel firId={firId} seizures={seizures} />}
+      {can('INVESTIGATE') && <WarrantPanel firId={firId} warrants={warrants} />}
+      {can('INVESTIGATE') && <CriminalPanel firId={firId} criminals={criminals} />}
+      {can('DISPOSE') && <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} />}
+      <CaseTimeline events={auditEvents} />
       <CaseTimeline events={auditEvents} />
       <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
     </div>

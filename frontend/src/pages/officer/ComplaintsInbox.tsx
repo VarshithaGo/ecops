@@ -4,6 +4,7 @@ import { Complaint } from '../../types/case.types'
 import { useState } from 'react'
 import { useAuth } from '../../auth/AuthProvider'
 import { useCurrentOfficer } from '../../hooks/useCurrentOfficer'
+import { useCapabilities } from '../../hooks/useCapabilities'
 import { ROLES } from '../../utils/roles'
 import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
@@ -28,6 +29,7 @@ export function ComplaintsInbox() {
   const [isZeroFir, setIsZeroFir] = useState(false)
   const { userId, roles } = useAuth()
   const { stationId: myStationId } = useCurrentOfficer()
+  const { can } = useCapabilities()
   const isAdmin = roles.includes(ROLES.ADMIN)
   // Officers see only complaints at their own station; admins see all.
   const complaints = (data ?? []).filter((c) => isAdmin || !myStationId || c.stationId === myStationId)
@@ -77,7 +79,7 @@ export function ComplaintsInbox() {
                 <td style={{ ...td, color: C.charcoal }}>{c.description.substring(0, 60)}{c.description.length > 60 ? '…' : ''}</td>
                 <td style={td}><StatusBadge status={c.status} size="sm" /></td>
                 <td style={td}>
-                  {c.status === 'FILED' && (
+                  {c.status === 'FILED' && can('CATEGORIZE') && (
                     <button
                       onClick={() => { setSelected(c.id); setOffenseType('COGNIZABLE'); setIsZeroFir(false) }}
                       style={{

@@ -50,9 +50,9 @@ public class DemoSeeder implements CommandLineRunner {
             // Koramangala — officer_kumar is the real login, first in the list.
             UUID kor = insertStation(KOR_STATION_ID, KOR_CODE, "Koramangala Police Station",
                     "Bengaluru Urban", "80 Feet Road, Koramangala, Bengaluru - 560095", "Koramangala, Ejipura, S.T. Bed");
-            insertOfficer(kor, OFFICER_KUMAR_ID, "S. Kumar", "Sub-Inspector", "KA-BLR-0001");
+            insertOfficer(kor, OFFICER_KUMAR_ID, "S. Kumar", "Inspector", "KA-BLR-0001");
             seedOfficers(kor, KOR_CODE, List.of(
-                    new OfficerSeed("R. Devaraj", "Inspector", "KA-BLR-0002"),
+                    new OfficerSeed("R. Devaraj", "Sub-Inspector", "KA-BLR-0002"),
                     new OfficerSeed("A. Fernandes", "Head Constable", "KA-BLR-0003")));
 
             seedStationWithOfficers("BLR-IND", "Indiranagar Police Station", "Bengaluru Urban",

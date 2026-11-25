@@ -1,17 +1,19 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { useCurrentOfficer } from '../hooks/useCurrentOfficer'
+import { useCapabilities } from '../hooks/useCapabilities'
 import { ROLES } from '../utils/roles'
+import { Capability } from '../utils/rank'
 import { A, FONT } from '../theme'
 
-const LINKS: { to: string; label: string; roles: string[] }[] = [
+const LINKS: { to: string; label: string; roles: string[]; cap?: Capability }[] = [
   { to: '/admin/stations',     label: 'Stations',          roles: [ROLES.ADMIN] },
   { to: '/admin/assignments',  label: 'Assignments',        roles: [ROLES.ADMIN] },
-  { to: '/officer/walk-in',    label: 'Walk-in',            roles: [ROLES.OFFICER] },
-  { to: '/officer/complaints', label: 'Complaints',         roles: [ROLES.OFFICER, ROLES.ADMIN] },
-  { to: '/officer/firs',       label: 'FIR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN] },
-  { to: '/officer/ncr',        label: 'NCR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN] },
-  { to: '/officer/criminals',  label: 'Criminal Records',   roles: [ROLES.OFFICER, ROLES.ADMIN] },
+  { to: '/officer/walk-in',    label: 'Walk-in',            roles: [ROLES.OFFICER], cap: 'WALKIN' },
+  { to: '/officer/complaints', label: 'Complaints',         roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'CATEGORIZE' },
+  { to: '/officer/firs',       label: 'FIR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'INVESTIGATE' },
+  { to: '/officer/ncr',        label: 'NCR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'CATEGORIZE' },
+  { to: '/officer/criminals',  label: 'Criminal Records',   roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'INVESTIGATE' },
   { to: '/magistrate/warrants',label: 'Warrants',           roles: [ROLES.MAGISTRATE] },
   { to: '/magistrate/ncr',     label: 'NCR Referrals',      roles: [ROLES.MAGISTRATE] },
   { to: '/magistrate/officers',label: 'Officers',           roles: [ROLES.MAGISTRATE] },
@@ -23,9 +25,11 @@ const onDark = 'rgba(255,255,255,0.78)'
 
 export function NavBar() {
   const { roles, username, logout } = useAuth()
-  const { officerName, stationName, stationCode } = useCurrentOfficer()
+  const { officerName, stationName, stationCode, rank } = useCurrentOfficer()
+  const { can } = useCapabilities()
   const location = useLocation()
-  const visible = LINKS.filter((l) => l.roles.some((r) => roles.includes(r)))
+  const visible = LINKS.filter((l) =>
+    l.roles.some((r) => roles.includes(r)) && (!l.cap || can(l.cap)))
 
   const displayName = officerName || username
 
@@ -82,7 +86,7 @@ export function NavBar() {
           <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{displayName}</span>
           {stationName && (
             <span style={{ fontSize: 11, color: onDark }}>
-              {stationName}{stationCode ? ` (${stationCode})` : ''}
+              {rank ? `${rank} · ` : ''}{stationName}{stationCode ? ` (${stationCode})` : ''}
             </span>
           )}
         </div>
