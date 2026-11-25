@@ -46,8 +46,12 @@ export const caseApi = {
     api.post(`/firs/${firId}/court-disposal`, data).then((r) => r.data),
   getFirCourtDisposal: (firId: string) =>
     api.get(`/firs/${firId}/court-disposal`).then((r) => r.data),
-  requestCourtVerdict: (firId: string) =>
-    api.post(`/firs/${firId}/court-verdict`).then((r) => r.data),
+  recordCourtVerdict: (firId: string, data: { outcome: string; judgeName?: string; sentence?: string }) =>
+    api.post(`/firs/${firId}/court-verdict`, data).then((r) => r.data),
+  grantBail: (firId: string) =>
+    api.put(`/firs/${firId}/bail`).then((r) => r.data),
+  updateFirSections: (firId: string, sectionsInvoked: string) =>
+    api.put(`/firs/${firId}/sections`, { sectionsInvoked }).then((r) => r.data),
 
   // Audit trail + BNSS §193 deadline
   getFirAudit: (firId: string) =>

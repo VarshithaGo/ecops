@@ -9,6 +9,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { DetailRow } from '../../components/DetailRow'
 import { OfficerChip } from '../../components/OfficerChip'
 import { CaseTimeline } from '../../components/CaseTimeline'
+import { SectionSelect } from '../../components/SectionSelect'
 import { useCapabilities } from '../../hooks/useCapabilities'
 import { useAuth } from '../../auth/AuthProvider'
 import { ROLES } from '../../utils/roles'
@@ -81,11 +82,11 @@ export default function FIRDetail() {
         </Link>
       </div>
 
-      {/* BNSS §193 charge-sheet deadline banner */}
-      {deadlineOpen && (deadlineState === 'OVERDUE' || deadlineState === 'DUE_SOON') && (
+      {/* BNSS §193 charge-sheet deadline banner — shown for every open FIR */}
+      {deadlineOpen && (
         <div style={{ border: `2px solid ${deadlineColor}`, background: `${deadlineColor}14`, borderRadius: 4, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontFamily: 'Anton, Impact, sans-serif', fontSize: 11, letterSpacing: '0.1em', color: deadlineColor, border: `1.5px solid ${deadlineColor}`, borderRadius: 3, padding: '3px 9px', whiteSpace: 'nowrap' }}>
-            {deadlineState === 'OVERDUE' ? 'CHARGE SHEET OVERDUE' : 'DEADLINE APPROACHING'}
+            {deadlineState === 'OVERDUE' ? 'CHARGE SHEET OVERDUE' : deadlineState === 'DUE_SOON' ? 'DEADLINE APPROACHING' : 'CHARGE-SHEET DEADLINE'}
           </span>
           <span style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, color: C.ashes, lineHeight: 1.5 }}>
             BNSS §193 — investigation is on day <strong>{daysElapsed}</strong> of the 90-day charge-sheet limit.{' '}
@@ -117,7 +118,9 @@ export default function FIRDetail() {
 
         <div style={{ borderTop: `1px solid ${C.bark}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <DetailRow label="Station" value={fir.stationCode} mono />
-          <DetailRow label="BNS/IPC Sections" value={fir.ipcSections} mono />
+          <DetailRow label="BNS/IPC Sections" value={fir.ipcSections === 'PENDING'
+            ? <span style={{ color: C.charcoal, fontStyle: 'italic' }}>Pending — set during investigation</span>
+            : fir.ipcSections} mono />
           <DetailRow label="Narrative" value={fir.narrative} />
           {fir.accusedName && <DetailRow label="Accused" value={fir.accusedName} />}
           {fir.accusedAddress && <DetailRow label="Accused Address" value={fir.accusedAddress} />}
@@ -125,6 +128,13 @@ export default function FIRDetail() {
           <DetailRow label="Free Copy Issued" value={fir.freeCopyIssued ? 'Yes' : 'Pending'} />
           {fir.remandCourtName && <DetailRow label="Court Production" value={fir.remandCourtName} />}
         </div>
+
+        {/* Set / correct BNS-IPC sections (investigating officer) */}
+        {can('INVESTIGATE') && !viewer && (
+          <div style={{ marginTop: 20, borderTop: `1px solid ${C.bark}`, paddingTop: 16 }}>
+            <FirSectionsEditor firId={firId} current={fir.ipcSections} />
+          </div>
+        )}
 
         {/* Court production — 24-hour rule (BNSS 187) */}
         {!fir.remandCourtName && !viewer && (
@@ -199,6 +209,32 @@ export default function FIRDetail() {
       {(can('DISPOSE') || viewer) && <FinalReportPanel firId={firId} chargeSheet={chargeSheet} finalReport={finalReport} readOnly={viewer} />}
       <CaseTimeline events={auditEvents} />
       <style>{`input::placeholder, textarea::placeholder { color: ${C.charcoal}; opacity: 0.6; }`}</style>
+    </div>
+  )
+}
+
+function FirSectionsEditor({ firId, current }: { firId: string; current: string }) {
+  const qc = useQueryClient()
+  const [value, setValue] = useState(current === 'PENDING' ? '' : current)
+  const save = useMutation({
+    mutationFn: () => caseApi.updateFirSections(firId, value),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['fir', firId] }),
+  })
+  const dirty = value !== (current === 'PENDING' ? '' : current)
+  return (
+    <div>
+      <SectionSelect value={value} onChange={setValue} label="BNS / IPC sections (set as the offence is established)" />
+      <button
+        onClick={() => save.mutate()}
+        disabled={!dirty || save.isPending}
+        style={{
+          marginTop: 10, padding: '8px 18px',
+          fontFamily: "'Space Grotesk', system-ui, sans-serif", fontSize: 13, fontWeight: 600,
+          background: (!dirty || save.isPending) ? '#9DB2CC' : '#1C4E80', color: '#fff',
+          border: 'none', borderRadius: 6, cursor: (!dirty || save.isPending) ? 'not-allowed' : 'pointer',
+        }}>
+        {save.isPending ? 'Saving…' : save.isSuccess && !dirty ? 'Saved ✓' : 'Save sections'}
+      </button>
     </div>
   )
 }

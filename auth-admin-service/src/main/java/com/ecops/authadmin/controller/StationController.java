@@ -27,13 +27,13 @@ public class StationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER')")
+    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER','CITIZEN','MAGISTRATE')")
     public List<StationResponse> list() {
         return stationService.listActive();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER')")
+    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER','CITIZEN','MAGISTRATE')")
     public StationResponse getById(@PathVariable UUID id) {
         return stationService.getById(id);
     }

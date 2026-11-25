@@ -43,7 +43,8 @@ class CaseWorkflowServiceTest {
         when(firRepo.findById(firId)).thenReturn(Optional.of(new Fir()));
         when(chargeSheetRepo.findByFirId(firId)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalStateException.class, () -> svc.requestCourtVerdict(firId, "officer-1"));
+        assertThrows(IllegalStateException.class,
+                () -> svc.recordCourtVerdict(firId, "magistrate-1", "CONVICTED", "Judge", null));
     }
 
     @Test

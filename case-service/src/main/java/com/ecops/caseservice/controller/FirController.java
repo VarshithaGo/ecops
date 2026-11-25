@@ -186,7 +186,7 @@ public class FirController {
     }
 
     @GetMapping("/{id}/criminal-records")
-    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','MAGISTRATE')")
     public List<CriminalRecord> listCriminals(@PathVariable UUID id) {
         return criminalRepo.findAll().stream()
                 .filter(cr -> cr.getFir().getId().equals(id)).toList();
@@ -206,7 +206,7 @@ public class FirController {
     }
 
     @GetMapping("/{id}/charge-sheet")
-    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN','MAGISTRATE')")
     public ChargeSheet getChargeSheet(@PathVariable UUID id) {
         return chargeSheetRepo.findByFirId(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("No charge sheet for FIR: " + id));
@@ -245,12 +245,34 @@ public class FirController {
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("No disposal for FIR: " + id));
     }
 
-    /** Case goes to court; the court returns a verdict (simulated, random — not the station's decision). */
+    /** The court delivers its verdict — recorded by the Magistrate. Reflects onto the accused's records. */
+    public record VerdictRequest(@NotBlank String outcome, String judgeName, String sentence) {}
+
     @PostMapping("/{id}/court-verdict")
-    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
-    public CourtDisposal requestCourtVerdict(@PathVariable UUID id,
-                                             @RequestHeader("X-User-Id") String userId) {
-        return workflowService.requestCourtVerdict(id, userId);
+    @PreAuthorize("hasRole('MAGISTRATE')")
+    public CourtDisposal recordVerdict(@PathVariable UUID id,
+                                       @RequestHeader("X-User-Id") String userId,
+                                       @Valid @RequestBody VerdictRequest req) {
+        return workflowService.recordCourtVerdict(id, userId, req.outcome(), req.judgeName(), req.sentence());
+    }
+
+    /** Magistrate grants bail to arrested accused on this FIR → status BAILED. */
+    @PutMapping("/{id}/bail")
+    @PreAuthorize("hasRole('MAGISTRATE')")
+    public List<CriminalRecord> grantBail(@PathVariable UUID id,
+                                          @RequestHeader("X-User-Id") String userId) {
+        return workflowService.grantBail(id, userId);
+    }
+
+    /** Officer sets/corrects the BNS/IPC sections on the FIR (start as PENDING). */
+    public record SectionsRequest(String sectionsInvoked) {}
+
+    @PutMapping("/{id}/sections")
+    @PreAuthorize("hasRole('POLICE_OFFICER')")
+    public Fir updateSections(@PathVariable UUID id,
+                              @RequestHeader("X-User-Id") String userId,
+                              @RequestBody SectionsRequest req) {
+        return workflowService.updateFirSections(id, req.sectionsInvoked(), userId);
     }
 
     @PutMapping("/{id}/transfer")

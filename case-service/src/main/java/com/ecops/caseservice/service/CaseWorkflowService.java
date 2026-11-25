@@ -369,6 +369,11 @@ public class CaseWorkflowService {
                 .role(role != null ? role : "SUSPECT")
                 .build();
         CriminalRecord saved = criminalRepo.save(cr);
+        // Surface the first ACCUSED on the FIR summary if one isn't recorded yet.
+        if ("ACCUSED".equals(cr.getRole()) && (fir.getAccusedName() == null || fir.getAccusedName().isBlank())) {
+            fir.setAccusedName(fullName);
+            firRepo.save(fir);
+        }
         auditService.record("FIR", fir.getId(), fir.getId(), officerId, ROLE_OFFICER,
                 "CRIMINAL_RECORD_ADDED", null, null,
                 (role != null ? role : "SUSPECT") + " added: " + fullName);
@@ -433,6 +438,30 @@ public class CaseWorkflowService {
         auditService.record("WARRANT", saved.getId(), w.getFir().getId(), officerId, ROLE_OFFICER,
                 "WARRANT_EXECUTED", "ISSUED", "EXECUTED",
                 "Warrant executed for " + w.getAccusedName());
+
+        // Reflect the arrest in the accused's criminal record(s) for this FIR.
+        UUID firId = w.getFir().getId();
+        String accused = w.getAccusedName();
+        List<CriminalRecord> recs = criminalRepo.findByFirId(firId);
+        List<CriminalRecord> targets = recs.stream()
+                .filter(cr -> accused != null && cr.getFullName() != null
+                        && accused.trim().equalsIgnoreCase(cr.getFullName().trim()))
+                .toList();
+        if (targets.isEmpty()) {   // no exact name match → arrest the suspects/accused on this FIR
+            targets = recs.stream()
+                    .filter(cr -> "SUSPECT".equals(cr.getRole()) || "ACCUSED".equals(cr.getRole()))
+                    .toList();
+        }
+        for (CriminalRecord cr : targets) {
+            if (!"CONVICTED".equals(cr.getStatus())) {
+                String prev = cr.getStatus();
+                cr.setStatus("ARRESTED");
+                criminalRepo.save(cr);
+                auditService.record("FIR", firId, firId, officerId, ROLE_OFFICER,
+                        "ACCUSED_ARRESTED", prev, "ARRESTED",
+                        cr.getFullName() + " arrested on execution of the warrant");
+            }
+        }
         return saved;
     }
 
@@ -681,7 +710,8 @@ public class CaseWorkflowService {
     // ---- Court Verdict (simulated — the court's decision, not the station's) ----
 
     @Transactional
-    public CourtDisposal requestCourtVerdict(UUID firId, String actorId) {
+    public CourtDisposal recordCourtVerdict(UUID firId, String magistrateId,
+                                            String outcome, String judgeName, String sentence) {
         Fir fir = findFirOrThrow(firId);
         ChargeSheet cs = chargeSheetRepo.findByFirId(firId)
                 .orElseThrow(() -> new IllegalStateException(
@@ -689,37 +719,69 @@ public class CaseWorkflowService {
         if (disposalRepo.findByFirId(firId).isPresent()) {
             throw new IllegalStateException("The court has already delivered a verdict for this case.");
         }
-
-        // The verdict belongs to the COURT, not the station — simulated with a random outcome.
-        String[] verdicts = {"CONVICTED", "ACQUITTED", "DISCHARGED"};
-        String[] judges = {"Hon'ble Judge R. Menon", "Hon'ble Judge S. Iyer",
-                           "Hon'ble Judge A. Khan", "Hon'ble Judge P. Nair"};
-        java.util.Random rnd = new java.util.Random();
-        String outcome = verdicts[rnd.nextInt(verdicts.length)];
-        String judge = judges[rnd.nextInt(judges.length)];
+        if (outcome == null || !List.of("CONVICTED", "ACQUITTED", "DISCHARGED").contains(outcome)) {
+            throw new IllegalStateException("Verdict must be CONVICTED, ACQUITTED or DISCHARGED.");
+        }
+        String judge = (judgeName == null || judgeName.isBlank()) ? "Hon'ble Court" : judgeName.trim();
+        boolean guilty = "CONVICTED".equals(outcome);
+        String remarks = guilty
+                ? "Accused convicted." + (sentence != null && !sentence.isBlank() ? " Sentence: " + sentence.trim() : "")
+                : ("ACQUITTED".equals(outcome) ? "Accused acquitted — released." : "Accused discharged — released.");
 
         CourtDisposal cd = CourtDisposal.builder()
                 .fir(fir).chargeSheet(cs).courtName(cs.getCourtName())
-                .judgeName(judge).judgmentDate(LocalDate.now()).outcome(outcome)
-                .remarks("Verdict delivered by the court (auto-generated for the demo).").build();
+                .judgeName(judge).judgmentDate(LocalDate.now()).outcome(outcome).remarks(remarks).build();
         disposalRepo.save(cd);
 
         fir.setStatus("COURT_DISPOSED");
         firRepo.save(fir);
 
-        // An accused becomes a convicted criminal ONLY if the court finds them guilty.
-        boolean guilty = "CONVICTED".equals(outcome);
+        // Reflect the verdict on the accused: guilty → CONVICTED; otherwise RELEASED.
         for (CriminalRecord cr : criminalRepo.findByFirId(firId)) {
-            if ("SUSPECT".equals(cr.getRole()) || "ACCUSED".equals(cr.getRole())) {
+            if ("SUSPECT".equals(cr.getRole()) || "ACCUSED".equals(cr.getRole()) || "CONVICTED_PERSON".equals(cr.getRole())) {
                 if (guilty) { cr.setStatus("CONVICTED"); cr.setRole("CONVICTED_PERSON"); }
                 else { cr.setStatus("RELEASED"); }
                 criminalRepo.save(cr);
             }
         }
 
-        auditService.record("COURT", cd.getId(), fir.getId(), actorId, ROLE_MAGISTRATE,
-                "COURT_VERDICT", null, outcome, "Court verdict: " + outcome + " before " + judge);
+        auditService.record("COURT", cd.getId(), fir.getId(), magistrateId, ROLE_MAGISTRATE,
+                "COURT_VERDICT", null, outcome,
+                "Court verdict: " + outcome + " before " + judge
+                        + (guilty && sentence != null && !sentence.isBlank() ? " — sentence: " + sentence.trim() : ""));
         return cd;
+    }
+
+    /** Magistrate grants bail to the arrested accused on an FIR → status BAILED. */
+    @Transactional
+    public List<CriminalRecord> grantBail(UUID firId, String magistrateId) {
+        findFirOrThrow(firId);
+        int n = 0;
+        List<CriminalRecord> recs = criminalRepo.findByFirId(firId);
+        for (CriminalRecord cr : recs) {
+            if ("ARRESTED".equals(cr.getStatus())) {
+                cr.setStatus("BAILED");
+                criminalRepo.save(cr);
+                auditService.record("FIR", firId, firId, magistrateId, ROLE_MAGISTRATE,
+                        "BAIL_GRANTED", "ARRESTED", "BAILED", "Bail granted to " + cr.getFullName());
+                n++;
+            }
+        }
+        if (n == 0) throw new IllegalStateException("No arrested accused on this FIR to grant bail to.");
+        return recs;
+    }
+
+    /** Set/correct the BNS/IPC sections on an FIR (they start as PENDING until determined). */
+    @Transactional
+    public Fir updateFirSections(UUID firId, String sections, String actorId) {
+        Fir fir = findFirOrThrow(firId);
+        String prev = fir.getIpcSections();
+        fir.setIpcSections(sections == null || sections.isBlank() ? "PENDING" : sections.trim());
+        Fir saved = firRepo.save(fir);
+        auditService.record("FIR", firId, firId, actorId, ROLE_OFFICER,
+                "SECTIONS_UPDATED", prev, saved.getIpcSections(),
+                "BNS/IPC sections set to " + saved.getIpcSections());
+        return saved;
     }
 
     // ---- Helpers ----

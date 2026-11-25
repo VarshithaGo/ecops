@@ -5,6 +5,7 @@ import { DetailRow } from '../../../components/DetailRow'
 import { ChargeSheet, FinalReport } from '../../../types/case.types'
 import { caseApi } from '../../../api/caseApi'
 import { useCourtDisposal } from '../../../hooks/useFIRData'
+import { SectionSelect } from '../../../components/SectionSelect'
 import { apiError } from '../../../utils/apiError'
 import { C, A, FONT, FIELD_BORDER } from '../../../theme'
 
@@ -42,14 +43,6 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport, readOnly }: 
     mutationFn: () => caseApi.fileFinalReport(firId, fr),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['fir-finalreport', firId] }); qc.invalidateQueries({ queryKey: ['fir', firId] }) },
   })
-  const verdict = useMutation({
-    mutationFn: () => caseApi.requestCourtVerdict(firId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['fir-disposal', firId] })
-      qc.invalidateQueries({ queryKey: ['fir', firId] })
-      qc.invalidateQueries({ queryKey: ['fir-criminals', firId] })
-    },
-  })
 
   if (chargeSheet) {
     return (
@@ -79,14 +72,8 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport, readOnly }: 
           ) : (
             <div>
               <div style={{ fontSize: 13, color: C.charcoal, marginBottom: 10, lineHeight: 1.5 }}>
-                The case has been filed in court. The <strong>verdict is the court's decision</strong>, not the station's{readOnly ? '.' : ' — request it below.'}
+                The case has been filed in court. The <strong>verdict is the Magistrate's decision</strong> — it will appear here once the court has pronounced it.
               </div>
-              {!readOnly && <>
-              {verdict.isError && <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', color: '#B91C1C', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 10 }}>Could not get the verdict. Try again.</div>}
-              <button onClick={() => verdict.mutate()} disabled={verdict.isPending} style={{ ...btnPrimary, background: verdict.isPending ? '#9DB2CC' : A.accent }}>
-                {verdict.isPending ? 'Awaiting court…' : 'Request court verdict'}
-              </button>
-              </>}
             </div>
           )}
         </div>
@@ -126,7 +113,7 @@ export function FinalReportPanel({ firId, chargeSheet, finalReport, readOnly }: 
             <div style={{ flex: 2 }}><label style={lbl}>Court name</label><input value={cs.courtName} onChange={setCsField('courtName')} style={inp} /></div>
             <div style={{ flex: 1 }}><label style={lbl}>Submission date</label><input type="date" value={cs.submissionDate} onChange={setCsField('submissionDate')} style={inp} /></div>
           </div>
-          <div><label style={lbl}>Sections invoked (BNS/IPC)</label><input value={cs.sectionsInvoked} onChange={setCsField('sectionsInvoked')} style={inp} placeholder="e.g. BNS 303(2), 305" /></div>
+          <div><SectionSelect value={cs.sectionsInvoked} onChange={(v) => setCs((p) => ({ ...p, sectionsInvoked: v }))} /></div>
           <div><label style={lbl}>Offence brief / accused details</label><textarea rows={3} value={cs.accusedDetails} onChange={setCsField('accusedDetails')} style={{ ...inp, resize: 'vertical' }} placeholder="Detailed brief of the offence and the accused" /></div>
           <div><label style={lbl}>Evidence summary <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><textarea rows={2} value={cs.evidenceSummary} onChange={setCsField('evidenceSummary')} style={{ ...inp, resize: 'vertical' }} /></div>
           <div><label style={lbl}>Witness list <span style={{ color: C.charcoal, fontWeight: 400 }}>(optional)</span></label><input value={cs.witnessList} onChange={setCsField('witnessList')} style={inp} /></div>

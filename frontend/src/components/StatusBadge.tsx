@@ -36,6 +36,7 @@ const COLORS: Record<string, string> = {
   // Criminal record roles/statuses
   NOT_ARRESTED: '#dc2626',
   ARRESTED: '#d97706',
+  BAILED: '#0891b2',
   CONVICTED: '#16a34a',
   RELEASED: '#6b7280',
   WITNESS: '#2563eb',
