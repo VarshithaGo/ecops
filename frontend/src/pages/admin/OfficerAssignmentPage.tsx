@@ -46,6 +46,7 @@ export function OfficerAssignmentPage() {
     onSuccess: (res) => {
       setResult(res); setForm(EMPTY)
       qc.invalidateQueries({ queryKey: ['assignments'] })
+      qc.invalidateQueries({ queryKey: ['all-assignments'] })
     },
   })
 
