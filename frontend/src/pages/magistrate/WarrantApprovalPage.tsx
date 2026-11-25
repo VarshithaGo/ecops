@@ -3,6 +3,7 @@ import { caseApi } from '../../api/caseApi'
 import { ArrestWarrant, Fir } from '../../types/case.types'
 import { useState } from 'react'
 import { apiError } from '../../utils/apiError'
+import { OfficerChip } from '../../components/OfficerChip'
 import { C, A, FONT, FIELD_BORDER } from '../../theme'
 
 const lbl: React.CSSProperties = { fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, color: C.charcoal, marginBottom: 2 }
@@ -58,6 +59,10 @@ export function WarrantApprovalPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: C.ashes }}>{w.accusedName}</div>
               <div style={{ fontSize: 12, color: C.charcoal }}>Requested {new Date(w.requestedAt).toLocaleDateString('en-IN')}</div>
+            </div>
+            <div style={{ marginBottom: 14, display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+              <span style={lbl}>Requested by</span>
+              <OfficerChip keycloakUserId={w.requestedByOfficerId} />
             </div>
             <div style={{ marginBottom: 14 }}><div style={lbl}>Grounds for Arrest</div><div style={val}>{w.reason}</div></div>
             {w.accusedDescription && <div style={{ marginBottom: 14 }}><div style={lbl}>Accused Description</div><div style={val}>{w.accusedDescription}</div></div>}

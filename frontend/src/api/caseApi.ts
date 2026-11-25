@@ -8,6 +8,8 @@ export const caseApi = {
   getComplaint: (id: string) => api.get(`/complaints/${id}`).then((r) => r.data),
   categorize: (id: string, data: unknown) =>
     api.put(`/complaints/${id}/categorize`, data).then((r) => r.data),
+  updateComplaint: (id: string, data: unknown) =>
+    api.put(`/complaints/${id}`, data).then((r) => r.data),
 
   // FIRs
   listFirs: () => api.get('/firs').then((r) => r.data),

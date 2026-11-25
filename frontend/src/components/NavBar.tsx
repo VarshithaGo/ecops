@@ -10,7 +10,7 @@ const LINKS: { to: string; label: string; roles: string[]; cap?: Capability }[] 
   { to: '/admin/stations',     label: 'Stations',          roles: [ROLES.ADMIN] },
   { to: '/admin/assignments',  label: 'Assignments',        roles: [ROLES.ADMIN] },
   { to: '/officer/walk-in',    label: 'Walk-in',            roles: [ROLES.OFFICER], cap: 'WALKIN' },
-  { to: '/officer/complaints', label: 'Complaints',         roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'CATEGORIZE' },
+  { to: '/officer/complaints', label: 'Complaints',         roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'WALKIN' },
   { to: '/officer/firs',       label: 'FIR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'INVESTIGATE' },
   { to: '/officer/ncr',        label: 'NCR Register',       roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'CATEGORIZE' },
   { to: '/officer/criminals',  label: 'Criminal Records',   roles: [ROLES.OFFICER, ROLES.ADMIN], cap: 'INVESTIGATE' },

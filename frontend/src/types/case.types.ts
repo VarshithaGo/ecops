@@ -3,8 +3,12 @@ export interface Complaint {
   complaintNumber: string
   citizenKeycloakId: string
   stationId: string
+  walkInName: string | null
+  walkInPhone: string | null
+  walkInAddress: string | null
   description: string
   incidentDate: string
+  incidentLocation: string | null
   offenseType: string | null
   status: string
   createdAt: string
@@ -80,6 +84,7 @@ export interface NcrEntry {
 export interface ArrestWarrant {
   id: string
   firId: string
+  requestedByOfficerId: string
   accusedName: string
   accusedDescription: string | null
   reason: string

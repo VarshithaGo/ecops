@@ -89,4 +89,23 @@ public class ComplaintController {
             @RequestHeader("X-User-Id") String officerUserId) {
         return workflowService.categorize(id, req.offenseType(), req.assignedOfficerId(), officerUserId, req.isZeroFir());
     }
+
+    public record UpdateComplaintRequest(
+        String walkInName,
+        String walkInPhone,
+        String walkInAddress,
+        @NotBlank String description,
+        @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate incidentDate,
+        String incidentLocation
+    ) {}
+
+    /** Edit a complaint's details before it is categorized (any officer, incl. the front desk). */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('POLICE_OFFICER','ADMIN')")
+    public Complaint update(@PathVariable UUID id,
+                            @Valid @RequestBody UpdateComplaintRequest req,
+                            @RequestHeader("X-User-Id") String officerId) {
+        return workflowService.updateComplaint(id, req.walkInName(), req.walkInPhone(), req.walkInAddress(),
+                req.description(), req.incidentDate(), req.incidentLocation(), officerId);
+    }
 }

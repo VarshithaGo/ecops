@@ -10,7 +10,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { fmtDate } from '../../utils/date'
 import { apiError } from '../../utils/apiError'
 
-import { C, A, FONT } from '../../theme'
+import { C, A, FONT, FIELD_BORDER } from '../../theme'
 
 const th: React.CSSProperties = {
   padding: '11px 14px', fontFamily: FONT.ui, fontSize: 12, fontWeight: 700,
@@ -21,6 +21,14 @@ const td: React.CSSProperties = {
   padding: '11px 14px', fontFamily: FONT.ui, fontSize: 14, color: C.ashes,
   borderBottom: `1px solid ${C.bark}`,
 }
+const editLbl: React.CSSProperties = {
+  fontFamily: FONT.ui, fontSize: 12, fontWeight: 600, color: C.charcoal, marginBottom: 4,
+}
+const editInput: React.CSSProperties = {
+  padding: '9px 12px', background: '#fff', color: C.ashes,
+  border: `1.5px solid ${FIELD_BORDER}`, borderRadius: 6,
+  fontFamily: FONT.ui, fontSize: 14, width: '100%', boxSizing: 'border-box', outline: 'none',
+}
 
 export function ComplaintsInbox() {
   const { data, isLoading } = useQuery<Complaint[]>({ queryKey: ['complaints'], queryFn: caseApi.listComplaints })
@@ -28,6 +36,8 @@ export function ComplaintsInbox() {
   const [selected, setSelected] = useState<string | null>(null)
   const [offenseType, setOffenseType] = useState('COGNIZABLE')
   const [isZeroFir, setIsZeroFir] = useState(false)
+  const [editing, setEditing] = useState<Complaint | null>(null)
+  const [form, setForm] = useState({ walkInName: '', walkInPhone: '', walkInAddress: '', description: '', incidentDate: '', incidentLocation: '' })
   const { userId, roles } = useAuth()
   const { stationId: myStationId } = useCurrentOfficer()
   const { can } = useCapabilities()
@@ -45,6 +55,34 @@ export function ComplaintsInbox() {
       setIsZeroFir(false)
     },
   })
+
+  const update = useMutation({
+    mutationFn: (id: string) =>
+      caseApi.updateComplaint(id, {
+        walkInName: form.walkInName || null,
+        walkInPhone: form.walkInPhone || null,
+        walkInAddress: form.walkInAddress || null,
+        description: form.description,
+        incidentDate: form.incidentDate,
+        incidentLocation: form.incidentLocation || null,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['complaints'] })
+      setEditing(null)
+    },
+  })
+
+  function openEdit(c: Complaint) {
+    setForm({
+      walkInName: c.walkInName ?? '',
+      walkInPhone: c.walkInPhone ?? '',
+      walkInAddress: c.walkInAddress ?? '',
+      description: c.description ?? '',
+      incidentDate: c.incidentDate ?? '',
+      incidentLocation: c.incidentLocation ?? '',
+    })
+    setEditing(c)
+  }
 
   if (isLoading) return (
     <div style={{ padding: 32, fontFamily: "'Space Grotesk', system-ui, sans-serif", color: C.charcoal }}>Loading...</div>
@@ -80,18 +118,32 @@ export function ComplaintsInbox() {
                 <td style={{ ...td, color: C.charcoal }}>{c.description.substring(0, 60)}{c.description.length > 60 ? '…' : ''}</td>
                 <td style={td}><StatusBadge status={c.status} size="sm" /></td>
                 <td style={td}>
-                  {c.status === 'FILED' && can('CATEGORIZE') && (
-                    <button
-                      onClick={() => { setSelected(c.id); setOffenseType('COGNIZABLE'); setIsZeroFir(false) }}
-                      style={{
-                        padding: '6px 14px', fontFamily: FONT.ui,
-                        fontSize: 13, fontWeight: 600,
-                        background: A.accent, color: '#fff',
-                        border: 'none', borderRadius: 6, cursor: 'pointer',
-                      }}>
-                      Categorize
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {c.status === 'FILED' && (
+                      <button
+                        onClick={() => openEdit(c)}
+                        style={{
+                          padding: '6px 14px', fontFamily: FONT.ui,
+                          fontSize: 13, fontWeight: 600,
+                          background: '#fff', color: A.accent,
+                          border: `1px solid ${A.accent}`, borderRadius: 6, cursor: 'pointer',
+                        }}>
+                        Edit
+                      </button>
+                    )}
+                    {c.status === 'FILED' && can('CATEGORIZE') && (
+                      <button
+                        onClick={() => { setSelected(c.id); setOffenseType('COGNIZABLE'); setIsZeroFir(false) }}
+                        style={{
+                          padding: '6px 14px', fontFamily: FONT.ui,
+                          fontSize: 13, fontWeight: 600,
+                          background: A.accent, color: '#fff',
+                          border: 'none', borderRadius: 6, cursor: 'pointer',
+                        }}>
+                        Categorize
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -177,6 +229,97 @@ export function ComplaintsInbox() {
                 {categorize.isPending ? 'Processing…' : 'Confirm'}
               </button>
               <button onClick={() => setSelected(null)}
+                style={{
+                  padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600,
+                  background: '#fff', color: C.ashes,
+                  border: `1px solid ${C.charcoal}66`, borderRadius: 8, cursor: 'pointer',
+                }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit modal */}
+      {editing && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(16,32,44,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16,
+        }}>
+          <div style={{
+            background: '#fff', border: `1px solid ${C.bark}`,
+            borderRadius: 12, padding: 32, width: 520, maxWidth: '100%',
+            maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: '0 24px 60px rgba(16,32,44,0.30)',
+          }}>
+            <h3 style={{ fontFamily: FONT.ui, fontSize: 20, fontWeight: 700, color: C.ashes, margin: '0 0 4px' }}>
+              Edit complaint
+            </h3>
+            <p style={{ fontFamily: FONT.ui, color: C.charcoal, fontSize: 13, margin: '0 0 20px' }}>
+              {editing.complaintNumber} — correct the details before it is categorized. Once categorized, a complaint can no longer be edited.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <label style={{ flex: 1 }}>
+                  <div style={editLbl}>Complainant name</div>
+                  <input style={editInput} value={form.walkInName}
+                    onChange={(e) => setForm({ ...form, walkInName: e.target.value })} />
+                </label>
+                <label style={{ width: 160 }}>
+                  <div style={editLbl}>Phone</div>
+                  <input style={editInput} value={form.walkInPhone}
+                    onChange={(e) => setForm({ ...form, walkInPhone: e.target.value })} />
+                </label>
+              </div>
+
+              <label>
+                <div style={editLbl}>Complainant address</div>
+                <input style={editInput} value={form.walkInAddress}
+                  onChange={(e) => setForm({ ...form, walkInAddress: e.target.value })} />
+              </label>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <label style={{ width: 180 }}>
+                  <div style={editLbl}>Incident date</div>
+                  <input type="date" style={editInput} value={form.incidentDate}
+                    onChange={(e) => setForm({ ...form, incidentDate: e.target.value })} />
+                </label>
+                <label style={{ flex: 1 }}>
+                  <div style={editLbl}>Incident location</div>
+                  <input style={editInput} value={form.incidentLocation}
+                    onChange={(e) => setForm({ ...form, incidentLocation: e.target.value })} />
+                </label>
+              </div>
+
+              <label>
+                <div style={editLbl}>Description</div>
+                <textarea rows={4} style={{ ...editInput, resize: 'vertical' }} value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </label>
+            </div>
+
+            {update.isError && (
+              <p style={{ fontFamily: FONT.ui, color: '#B91C1C', fontSize: 13, margin: '14px 0 0' }}>
+                {apiError(update.error, 'Could not save changes.')}
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 22 }}>
+              <button
+                onClick={() => update.mutate(editing.id)}
+                disabled={update.isPending || !form.description.trim() || !form.incidentDate}
+                style={{
+                  padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600,
+                  background: (update.isPending || !form.description.trim() || !form.incidentDate) ? '#9DB2CC' : A.accent, color: '#fff',
+                  border: 'none', borderRadius: 8,
+                  cursor: (update.isPending || !form.description.trim() || !form.incidentDate) ? 'not-allowed' : 'pointer',
+                }}>
+                {update.isPending ? 'Saving…' : 'Save changes'}
+              </button>
+              <button onClick={() => setEditing(null)}
                 style={{
                   padding: '10px 22px', fontFamily: FONT.ui, fontSize: 14, fontWeight: 600,
                   background: '#fff', color: C.ashes,

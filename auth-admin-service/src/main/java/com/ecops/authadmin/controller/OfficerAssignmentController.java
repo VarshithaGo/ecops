@@ -62,7 +62,7 @@ public class OfficerAssignmentController {
     }
 
     @GetMapping("/officer/{keycloakUserId}")
-    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER')")
+    @PreAuthorize("hasAnyRole('ADMIN','POLICE_OFFICER','MAGISTRATE')")
     public AssignmentResponse getByOfficer(@PathVariable String keycloakUserId) {
         return assignmentService.getActiveByOfficer(keycloakUserId);
     }

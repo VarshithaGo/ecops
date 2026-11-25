@@ -172,6 +172,28 @@ public class CaseWorkflowService {
         }
     }
 
+    // ---- Edit a complaint (before categorization) ----
+
+    @Transactional
+    public Complaint updateComplaint(UUID id, String walkInName, String walkInPhone, String walkInAddress,
+                                     String description, LocalDate incidentDate, String incidentLocation, String actorId) {
+        Complaint c = complaintRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Complaint not found: " + id));
+        if (!"FILED".equals(c.getStatus())) {
+            throw new IllegalStateException("Only complaints still awaiting categorization can be edited.");
+        }
+        if (walkInName != null) c.setWalkInName(walkInName);
+        if (walkInPhone != null) c.setWalkInPhone(walkInPhone);
+        if (walkInAddress != null) c.setWalkInAddress(walkInAddress);
+        if (description != null) c.setDescription(description);
+        if (incidentDate != null) c.setIncidentDate(incidentDate);
+        if (incidentLocation != null) c.setIncidentLocation(incidentLocation);
+        Complaint saved = complaintRepo.save(c);
+        auditService.record("COMPLAINT", saved.getId(), null, actorId, ROLE_OFFICER,
+                "COMPLAINT_EDITED", null, null, "Complaint " + c.getComplaintNumber() + " details updated");
+        return saved;
+    }
+
     // ---- IO Assignment ----
 
     @Transactional

@@ -246,7 +246,7 @@ export function Dashboard() {
   // Hide officer quick-access cards the officer's rank can't use.
   const CAP_BY_PATH: Partial<Record<string, Capability>> = {
     '/officer/walk-in': 'WALKIN',
-    '/officer/complaints': 'CATEGORIZE',
+    '/officer/complaints': 'WALKIN',
     '/officer/firs': 'INVESTIGATE',
     '/officer/ncr': 'CATEGORIZE',
     '/officer/criminals': 'INVESTIGATE',
